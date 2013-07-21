@@ -1,0 +1,24 @@
+2013-07-21  Andreas Schlegel
+
+      * version 2.0.0
+  
+      * starting new release for processing 2.0
+      * removing class OscIn which has been deprecated for a while now.
+      * src oscP5.OscMessage.java:
+      replaced add(Object[]) with add(Object...)
+      * src oscP5.OscMessage.java:
+      replaced setArguments(Object[]) with setArguments(Object...)
+      * src oscP5.OscMessage.java:
+      replaced addArguments(Object[]) with addArguments(Object...)
+      * src oscP5.OscMessage.java:
+      replaced add(int[]) with add(int...)
+      * src oscP5.OscMessage.java:
+      replaced add(char[]) with add(char...)
+      * src oscP5.OscMessage.java:
+      replaced add(float[]) with add(float...)
+      * src oscP5.OscMessage.java:
+      replaced add(String[]) with add(String...)
+      * src oscP5.OscMessage.java:
+      replaced add(byte[]) with add(byte...)
+
+	
