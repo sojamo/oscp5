@@ -23,206 +23,61 @@
  * @version		##version##
  */
 
-
 package oscP5;
 
-/**
- * an osc argument contains one value of values from a received osc message.
- * you can convert the value into the required format, e.g. from Object to int
- * theOscMessage.get(0).intValue();
- * @related OscMessage
- * @example oscP5oscArgument
- */
 public class OscArgument {
+
 	protected Object value;
 
-    /**
-     * @invisible
-     */
-    public OscArgument() {}
-
-	/**
-         * get the int value of the osc argument.
-	 * @return int
-         * @related intValue ( )
-         * @related floatValue ( )
-         * @related charValue ( )
-         * @related stringValue ( )
-         * @related doubleValue ( )
-         * @related longValue ( )
-         * @related booleanValue ( )
-         * @related bytesValue ( )
-         * @related blobValue ( )
-         * @example oscP5parsing
-	 */
-	public int intValue() {
-		return ((Integer) value).intValue();
+	OscArgument( ) {
 	}
 
-	/**
-	 * get the char value of the osc argument.
-	 * @return char
-         * @related intValue ( )
-         * @related floatValue ( )
-         * @related charValue ( )
-         * @related stringValue ( )
-         * @related doubleValue ( )
-         * @related longValue ( )
-         * @related booleanValue ( )
-         * @related bytesValue ( )
-         * @related blobValue ( )
-         * @example oscP5parsing
-	 */
-	public char charValue() {
-		return ((Character) value).charValue();
+	public int intValue( ) {
+		return ( ( Integer ) value ).intValue( );
 	}
 
-	/**
-	 * get the float value of the osc argument.
-	 * @return float
-         * @related intValue ( )
-         * @related floatValue ( )
-         * @related charValue ( )
-         * @related stringValue ( )
-         * @related doubleValue ( )
-         * @related longValue ( )
-         * @related booleanValue ( )
-         * @related bytesValue ( )
-         * @related blobValue ( )
-         * @example oscP5parsing
-	 */
-	public float floatValue() {
-		return ((Float) value).floatValue();
+	public char charValue( ) {
+		return ( ( Character ) value ).charValue( );
 	}
 
-	/**
-	 * get the double value of the osc argument.
-	 * @return double
-         * @related intValue ( )
-         * @related floatValue ( )
-         * @related charValue ( )
-         * @related stringValue ( )
-         * @related doubleValue ( )
-         * @related longValue ( )
-         * @related booleanValue ( )
-         * @related bytesValue ( )
-         * @related blobValue ( )
-         * @example oscP5parsing
-	 */
-	public double doubleValue() {
-		return ((Double) value).doubleValue();
+	public float floatValue( ) {
+		return ( ( Float ) value ).floatValue( );
 	}
 
-	/**
-	 * get the long value of the osc argument.
-	 * @return long
-         * @related intValue ( )
-         * @related floatValue ( )
-         * @related charValue ( )
-         * @related stringValue ( )
-         * @related doubleValue ( )
-         * @related longValue ( )
-         * @related booleanValue ( )
-         * @related bytesValue ( )
-         * @related blobValue ( )
-         * @example oscP5parsing
-	 */
-	public long longValue() {
-		return ((Long) value).longValue();
+	public double doubleValue( ) {
+		return ( ( Double ) value ).doubleValue( );
 	}
 
-	/**
-	 * get the boolean value of the osc argument.
-	 * @return boolean
-         * @related intValue ( )
-         * @related floatValue ( )
-         * @related charValue ( )
-         * @related stringValue ( )
-         * @related doubleValue ( )
-         * @related longValue ( )
-         * @related booleanValue ( )
-         * @related bytesValue ( )
-         * @related blobValue ( )
-         * @example oscP5parsing
-	 */
-	public boolean booleanValue() {
-		return ((Boolean) value).booleanValue();
+	public long longValue( ) {
+		return ( ( Long ) value ).longValue( );
 	}
 
-        /**
-         * get the String value of the osc argument.
-         * @return String
-         * @related intValue ( )
-         * @related floatValue ( )
-         * @related charValue ( )
-         * @related stringValue ( )
-         * @related doubleValue ( )
-         * @related longValue ( )
-         * @related booleanValue ( )
-         * @related bytesValue ( )
-         * @related blobValue ( )
-         * @example oscP5parsing
-         */
-        public String stringValue() {
-         return ((String) value);
-        }
-
-
-	/**
-	 *
-	 * @return String
-	 */
-	public String toString() {
-		return ((String) value);
+	public boolean booleanValue( ) {
+		return ( ( Boolean ) value ).booleanValue( );
 	}
 
-	/**
-	 * get the byte array of the osc argument.
-	 * @return byte[]
-         * @related intValue ( )
-         * @related floatValue ( )
-         * @related charValue ( )
-         * @related stringValue ( )
-         * @related doubleValue ( )
-         * @related longValue ( )
-         * @related booleanValue ( )
-         * @related bytesValue ( )
-         * @related blobValue ( )
-         * @example oscP5parsing
-	 */
-	public byte[] bytesValue() {
-		return ((byte[]) value);
+	public String stringValue( ) {
+		return ( ( String ) value );
 	}
 
-        /**
-         * get the byte array (blob) of the osc argument.
-         * @return byte[]
-         * @related intValue ( )
-         * @related floatValue ( )
-         * @related charValue ( )
-         * @related stringValue ( )
-         * @related doubleValue ( )
-         * @related longValue ( )
-         * @related booleanValue ( )
-         * @related bytesValue ( )
-         * @related blobValue ( )
-         * @example oscP5parsing
-         */
-        public byte[] blobValue() {
-                return ((byte[]) value);
-        }
+	public String toString( ) {
+		return ( ( String ) value );
+	}
 
+	public byte[] bytesValue( ) {
+		return ( ( byte[] ) value );
+	}
 
-	/**
-	 *
-	 * @return int[]
-	 */
-	public int[] midiValue() {
-		int[] myInt = new int[4];
-		byte[] myByte = (byte[]) value;
-		for (int i = 0; i < 4; i++) {
-			myInt[i] = (int) (myByte[i]);
+	public byte[] blobValue( ) {
+		return ( ( byte[] ) value );
+	}
+
+	public int[] midiValue( ) {
+		int[] myInt = new int[ 4 ];
+		byte[] myByte = ( byte[] ) value;
+		for ( int i = 0 ; i < 4 ; i++ ) {
+			myInt[ i ] = ( int ) ( myByte[ i ] );
 		}
-		return (myInt);
+		return ( myInt );
 	}
 }

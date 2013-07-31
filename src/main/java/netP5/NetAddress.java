@@ -25,106 +25,64 @@
 
 package netP5;
 
-
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 
-/**
- * NetAddress is an Object that contains an inetaddress
- * of an remote internet address, consisting of an
- * ip address and a port number.
- * @author andreas schlegel
- * 
- */
 public class NetAddress {
-  protected InetAddress inetaddress = null;
 
-  protected String hostAddress;
+	protected InetAddress inetaddress = null;
 
-  public String name = "";
+	protected String hostAddress;
 
-  protected int port = 0;
+	public String name = "";
 
-  protected boolean isValid = false;
+	protected int port = 0;
 
-  /**
-   *
-   * @param theAddress String
-   * @param thePort int
-   */
-  public NetAddress(final String theAddress,
-                    final int thePort) {
-    hostAddress = theAddress;
-    port = thePort;
-    if (thePort > 0) {
-      try {
-        inetaddress = InetAddress.getByName(theAddress);
-        isValid = true;
-      }
-      catch (UnknownHostException e) {
-        System.out.println("no such host " + inetaddress);
-      }
-    }
-  }
+	protected boolean isValid = false;
 
-  public NetAddress(NetAddress theNetAddress) {
-   this(theNetAddress.address(),theNetAddress.port());
-  }
+	private NetAddress( ) {
+	}
 
+	public NetAddress( final String theAddress , final int thePort ) {
+		hostAddress = theAddress;
+		port = thePort;
+		if ( thePort > 0 ) {
+			try {
+				inetaddress = InetAddress.getByName( theAddress );
+				isValid = true;
+			} catch ( UnknownHostException e ) {
+				System.out.println( "no such host " + inetaddress );
+			}
+		}
+	}
 
-  /**
-   *
-   * @param theInetAddress InetAddress
-   * @param thePort int
-   */
-  public NetAddress(InetAddress theInetAddress, int thePort) {
-    inetaddress = theInetAddress;
-    hostAddress = inetaddress.getHostAddress();
-    port = thePort;
-  }
+	public NetAddress( NetAddress theNetAddress ) {
+		this( theNetAddress.address( ) , theNetAddress.port( ) );
+	}
 
+	public NetAddress( InetAddress theInetAddress , int thePort ) {
+		inetaddress = theInetAddress;
+		hostAddress = inetaddress.getHostAddress( );
+		port = thePort;
+	}
 
+	public InetAddress inetaddress( ) {
+		return inetaddress;
+	}
 
-  /**
-   *
-   * @return InetAddress
-   */
-  public InetAddress inetaddress() {
-    return inetaddress;
-  }
+	public String address( ) {
+		return hostAddress;
+	}
 
+	public int port( ) {
+		return port;
+	}
 
+	public boolean isvalid( ) {
+		return isValid;
+	}
 
-  /**
-   *returns the remote ip address as string
-   * @return String
-   */
-  public String address() {
-    return hostAddress;
-  }
-
-
-
-  /**
-   *returns the remote port number
-   * @return int
-   */
-  public int port() {
-    return port;
-  }
-
-
-
-  /**
-   *check if the netAddress is valid. this is true if
-   * the remote ip address was found.
-   * @return boolean
-   */
-  public boolean isvalid() {
-    return isValid;
-  }
-
-  public String toString() {
-    return hostAddress+":"+port;
-  }
+	public String toString( ) {
+		return hostAddress + ":" + port;
+	}
 }

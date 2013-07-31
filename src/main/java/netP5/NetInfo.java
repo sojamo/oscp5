@@ -25,7 +25,6 @@
 
 package netP5;
 
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -33,122 +32,90 @@ import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.StringTokenizer;
+import java.util.logging.Logger;
 
-
-/**
- * some description
- * @author andreas schlegel
- */
 public class NetInfo {
 
-  public NetInfo() {
-  }
+	private final static Logger LOGGER = Logger.getLogger( NetInfo.class.getName( ) );
 
+	public NetInfo( ) {
+	}
 
+	public static void print( ) {
+		try {
+			java.net.InetAddress i = java.net.InetAddress.getLocalHost( );
+			System.out.println( "### hostname/ip " + i ); // name and IP address
+			System.out.println( "### hostname " + i.getHostName( ) ); // name
+			System.out.println( "### ip " + i.getHostAddress( ) ); // IP address
+			// only
+		} catch ( Exception e ) {
+			e.printStackTrace( );
+		}
+	}
 
-  public static void print() {
-    try {
-      java.net.InetAddress i = java.net.InetAddress.getLocalHost();
-      System.out.println("### hostname/ip " + i); // name and IP address
-      System.out.println("### hostname " + i.getHostName()); // name
-      System.out.println("### ip " + i.getHostAddress()); // IP address
-      // only
-    }
-    catch (Exception e) {
-      e.printStackTrace();
-    }
-  }
+	public static String getHostAddress( ) {
+		try {
+			java.net.InetAddress i = java.net.InetAddress.getLocalHost( );
+			return i.getHostAddress( );
+		} catch ( Exception e ) {
+		}
+		return "ERROR";
+	}
 
+	public static String lan( ) {
+		LOGGER.info( "host address : " + getHostAddress( ) );
+		return getHostAddress( );
+	}
 
+	public static String wan( ) {
+		// create URL object.
+		String myIp = null;
+		URL u = null;
+		String URLstring = "http://checkip.dyndns.org";
+		boolean isConnectedToInternet = false;
+		LOGGER.info( "Checking internet  connection ..." );
+		try {
+			u = new URL( URLstring );
+		} catch ( MalformedURLException e ) {
+			LOGGER.warning( "Bad URL " + URLstring + " " + e );
+		}
 
-  public static String getHostAddress() {
-    try {
-      java.net.InetAddress i = java.net.InetAddress.getLocalHost();
-      return i.getHostAddress();
-    }
-    catch (Exception e) {
-    }
-    return "ERROR";
-  }
+		InputStream in = null;
+		try {
+			in = u.openStream( );
+			isConnectedToInternet = true;
+		} catch ( IOException e ) {
+			LOGGER.warning( "Unable to open  " + URLstring + "\n" + "Either the  " + URLstring + " is unavailable or this machine  is not" + "connected to the internet !" );
+		}
 
+		if ( isConnectedToInternet ) {
+			try {
+				BufferedReader br = new BufferedReader( new InputStreamReader( in ) );
+				String line;
+				String theToken = "";
+				while ( ( line = br.readLine( ) ) != null ) {
+					theToken += line;
+				}
+				br.close( );
 
+				StringTokenizer st = new StringTokenizer( theToken , " <>" , false );
 
-  public static String lan() {
-    Logger.printProcess("NetInfo.checkNetworkStatus : ", getHostAddress());
-    return getHostAddress();
-  }
+				while ( st.hasMoreTokens( ) ) {
+					String myToken = st.nextToken( );
+					if ( myToken.compareTo( "Address:" ) == 0 ) {
+						myToken = st.nextToken( );
+						myIp = myToken;
+						LOGGER.info( "WAN address : " + myIp );
+					}
+				}
+			} catch ( IOException e ) {
+				LOGGER.warning( "I/O error reading  " + URLstring + " Exception = " + e );
+			}
+		}
+		return myIp;
+	}
 
-
-
-  public static String wan() {
-    // create URL object.
-    String myIp = null;
-    URL u = null;
-    String URLstring = "http://checkip.dyndns.org";
-    boolean isConnectedToInternet = false;
-    Logger.printProcess("NetInfo.checkNetworkStatus",
-                        "Checking internet  connection ...");
-    try {
-      u = new URL(URLstring);
-    }
-    catch (MalformedURLException e) {
-      Logger.printError("NetInfo.checkNetworkStatus", "Bad URL "
-                        + URLstring + " " + e);
-    }
-
-    InputStream in = null;
-    try {
-      in = u.openStream();
-      isConnectedToInternet = true;
-    }
-    catch (IOException e) {
-      Logger.printError("NetInfo.checkNetworkStatus",
-                        "! Unable to open  " + URLstring + "\n" + "Either the  "
-                        + URLstring
-                        + " is unavailable or this machine  is not"
-                        + "connected to the internet !");
-    }
-
-    if (isConnectedToInternet) {
-      try {
-        BufferedReader br = new BufferedReader(
-            new InputStreamReader(in));
-        String line;
-        String theToken = "";
-        while ( (line = br.readLine()) != null) {
-          theToken += line;
-        }
-        br.close();
-
-        StringTokenizer st = new StringTokenizer(theToken, " <>", false);
-
-        while (st.hasMoreTokens()) {
-          String myToken = st.nextToken();
-          if (myToken.compareTo("Address:") == 0) {
-            myToken = st.nextToken();
-            myIp = myToken;
-            Logger.printProcess("NetInfo.checkNetworkStatus",
-                                "WAN address : " + myIp);
-          }
-        }
-      }
-      catch (IOException e) {
-        Logger.printError("NetInfo.checkNetworkStatus",
-                          "I/O error reading  " + URLstring
-                          + " Exception = " + e);
-      }
-    }
-    return myIp;
-  }
-
-
-
-  /**
-   *
-   * @param args String[]
-   * @invisible
-   */
-  public static void main(String[] args) {
-    NetInfo.wan();
-  }
+	public static void main( String[] args ) {
+		NetInfo.wan( );
+	}
 }

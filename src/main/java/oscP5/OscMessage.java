@@ -25,13 +25,10 @@
 
 package oscP5;
 
-import java.net.DatagramPacket;
+import java.net.InetSocketAddress;
+import java.util.Map;
 
-import java.net.InetAddress;
 import netP5.Bytes;
-import netP5.Logger;
-import netP5.TcpClient;
-import netP5.TcpPacket;
 
 /**
  * An OSC message consists of an OSC Address Pattern, an OSC Type Tag String and the OSC arguments.
@@ -45,97 +42,52 @@ public class OscMessage extends OscPacket {
 
 	protected boolean isPlugged = false;
 
-	protected OscMessage( final DatagramPacket theDatagramPacket ) {
-		inetAddress = theDatagramPacket.getAddress( );
-		port = theDatagramPacket.getPort( );
-		hostAddress = inetAddress.toString( );
-		parseMessage( theDatagramPacket.getData( ) );
-		_myType = MESSAGE;
-	}
+	OscMessage( Map m ) {
 
-	protected OscMessage( final TcpPacket thePacket ) {
-		_myTcpClient = thePacket.getTcpConnection( );
-		inetAddress = _myTcpClient.netAddress( ).inetaddress( );
-		port = _myTcpClient.netAddress( ).port( );
-		hostAddress = inetAddress.toString( );
-		parseMessage( thePacket.getData( ) );
-		_myType = MESSAGE;
-	}
+		parseMessage( bytes( m.get( "data" ) ) );
 
-	/**
-	 * 
-	 * @param theOscMessage
-	 *            OscMessage
-	 * @invisible
-	 */
+		InetSocketAddress socket = ( InetSocketAddress ) m.get( "socket-address" );
+	}
 
 	public OscMessage( final OscMessage theOscMessage ) {
+
 		inetAddress = theOscMessage.inetAddress;
+
 		port = theOscMessage.port;
+
 		hostAddress = theOscMessage.hostAddress;
+
 		_myTcpClient = theOscMessage.tcpConnection( );
+
 		_myAddrPattern = theOscMessage._myAddrPattern;
+
 		_myTypetag = theOscMessage._myTypetag;
+
 		_myData = theOscMessage._myData;
+
 		_myArguments = theOscMessage._myArguments;
+
 		isValid = true;
 	}
 
-	/**
-	 * 
-	 * @param theAddrPattern
-	 *            String
-	 */
 	public OscMessage( final String theAddrPattern ) {
 		this( theAddrPattern , new Object[ 0 ] );
 	}
 
-	/**
-	 * 
-	 * @param theAddrInt
-	 *            int
-	 */
 	public OscMessage( final int theAddrInt ) {
 		this( theAddrInt , new Object[ 0 ] );
 	}
 
-	/**
-	 * 
-	 * @param theAddrPattern
-	 *            String
-	 * @param theArguments
-	 *            Object[]
-	 */
-	public OscMessage( final String theAddrPattern , final Object[] theArguments ) {
+	public OscMessage( final String theAddrPattern , final Object ... theArguments ) {
 		init( );
-		setAddrPattern( theAddrPattern );
+		setAddress( theAddrPattern );
 		setArguments( theArguments );
 	}
 
-	/**
-	 * 
-	 * @param theAddrPattern
-	 *            int
-	 * @param theArguments
-	 *            Object[]
-	 */
-	public OscMessage( final int theAddrPattern , final Object[] theArguments ) {
+	public OscMessage( final int theAddrPattern , final Object ... theArguments ) {
 		init( );
-		setAddrPattern( theAddrPattern );
+		setAddress( theAddrPattern );
 		setArguments( theArguments );
-	}
-
-	protected OscMessage( final byte[] theBytes , final InetAddress theInetAddress , final int thePort , final TcpClient theClient ) {
-		_myTcpClient = theClient;
-		inetAddress = theInetAddress;
-		port = thePort;
-		hostAddress = inetAddress.toString( );
-		parseMessage( theBytes );
-	}
-
-	protected OscMessage( final byte[] theBytes , final InetAddress theInetAddress , final int thePort , final long theTimetag , final TcpClient theClient ) {
-		this( theBytes , theInetAddress , thePort , theClient );
-		timetag = theTimetag;
 	}
 
 	protected void init( ) {
@@ -147,18 +99,21 @@ public class OscMessage extends OscPacket {
 	 * clear and reset an OscMessage for reuse.
 	 */
 	public void clear( ) {
+
 		init( );
-		setAddrPattern( "" );
+
+		setAddress( "" );
+
 		setArguments( new Object[ 0 ] );
+
 	}
 
-	/**
-	 * clears the arguments in a message, but keeps the address the address pattern.
-	 * 
-	 */
 	public void clearArguments( ) {
+
 		_myTypetag = new byte[ 0 ];
+
 		_myData = new byte[ 0 ];
+
 		_myArguments = new Object[ 0 ];
 	}
 
@@ -177,28 +132,17 @@ public class OscMessage extends OscPacket {
 		}
 	}
 
-	/**
-	 * 
-	 * @param theTypeTag
-	 *            String
-	 * @return boolean
-	 * @example oscP5parsing
-	 */
 	public boolean checkTypetag( final String theTypeTag ) {
 		return theTypeTag.equals( typetag( ) );
 	}
 
 	/**
 	 * check if an address pattern equals a specific address pattern you are looking for. this is
-	 * usually used when parsing an osc message. e.g.
-	 * if(theOscMessage.checkAddrPattern("/test")==true) {...}
+	 * usually used when parsing an osc message. e.g. if( theOscMessage.checkAddress( "/test" ) ) {
+	 * ... }
 	 * 
-	 * @param theAddrPattern
-	 *            String
-	 * @return boolean
-	 * @example oscP5parsing
 	 */
-	public boolean checkAddrPattern( final String theAddrPattern ) {
+	public boolean checkAddress( final String theAddrPattern ) {
 		return theAddrPattern.equals( addrPattern( ) );
 	}
 
@@ -207,19 +151,12 @@ public class OscMessage extends OscPacket {
 	 * pattern.tnt might be useful for supercollider users. oscP5 does support ints and strings as
 	 * address patterns when sending and receiving messages.
 	 * 
-	 * @param theAddrPattern
-	 *            String
 	 */
-	public void setAddrPattern( final String theAddrPattern ) {
+	public void setAddress( final String theAddrPattern ) {
 		_myAddrPattern = theAddrPattern.getBytes( );
 	}
 
-	/**
-	 * 
-	 * @param theAddrPattern
-	 *            int
-	 */
-	public void setAddrPattern( final int theAddrPattern ) {
+	public void setAddress( final int theAddrPattern ) {
 		_myAddrPattern = Bytes.toBytes( theAddrPattern );
 	}
 
@@ -228,8 +165,6 @@ public class OscMessage extends OscPacket {
 	 * arguments are overwritten, to add the arguments to the argument list, use
 	 * addArguments(Object[])
 	 * 
-	 * @param theArguments
-	 *            Object[]
 	 */
 	public void setArguments( final Object ... theArguments ) {
 		clearArguments( );
@@ -239,11 +174,13 @@ public class OscMessage extends OscPacket {
 	/**
 	 * add a list of arguments to an exisiting set of arguments. to overwrite the existing argument
 	 * list, use setArguments(Object[])
-	 * 
-	 * @param theArguments
 	 */
 	public OscMessage addArguments( final Object ... theArguments ) {
 		return add( theArguments );
+	}
+
+	public String address( ) {
+		return Bytes.getAsString( _myAddrPattern );
 	}
 
 	public String addrPattern( ) {
@@ -252,8 +189,6 @@ public class OscMessage extends OscPacket {
 
 	/**
 	 * returns the address pattern of the osc message as int.
-	 * 
-	 * @return int
 	 */
 	public int addrInt( ) {
 		return _myAddrInt;
@@ -269,28 +204,14 @@ public class OscMessage extends OscPacket {
 		return Bytes.getAsString( _myTypetag );
 	}
 
-	/**
-	 * get the timetag of an osc message. timetags are only sent by osc bundles.
-	 * 
-	 * @return long
-	 */
 	public long timetag( ) {
 		return timetag;
 	}
 
-	/**
-	 * 
-	 * @return Object[]
-	 */
 	public Object[] arguments( ) {
 		return _myArguments;
 	}
 
-	/**
-	 * supported arrays see OscPlug.getArgs
-	 * 
-	 * @return Object[]
-	 */
 	protected Object[] argsAsArray( ) {
 		switch ( _myTypetag[ 0 ] ) {
 		case ( 0X66 ): // float f
@@ -318,29 +239,14 @@ public class OscMessage extends OscPacket {
 		return new Object[] { };
 	}
 
-	/**
-	 * 
-	 * @return byte[]
-	 * @invisible
-	 */
 	public byte[] getAddrPatternAsBytes( ) {
 		return Bytes.append( _myAddrPattern , new byte[ align( _myAddrPattern.length ) ] );
 	}
 
-	/**
-	 * 
-	 * @return byte[]
-	 * @invisible
-	 */
 	public byte[] getTypetagAsBytes( ) {
 		return _myTypetag;
 	}
 
-	/**
-	 * 
-	 * @return byte[]
-	 * @invisible
-	 */
 	public byte[] getBytes( ) {
 		byte[] myBytes = new byte[ 0 ];
 		byte[] myTypeTag = Bytes.copy( _myTypetag , 0 );
@@ -364,20 +270,11 @@ public class OscMessage extends OscPacket {
 		return myArguments;
 	}
 
-	/**
-	 * add values to an osc message. please check the add documentation for specific information.
-	 * 
-	 * @example oscP5message
-	 */
 	public OscMessage add( ) {
 		_myTypetag = Bytes.append( _myTypetag , new byte[] { 0x4e } );
 		return this;
 	}
 
-	/**
-	 * @param theValue
-	 *            int
-	 */
 	public OscMessage add( final int theValue ) {
 		_myTypetag = Bytes.append( _myTypetag , new byte[] { 0x69 } );
 		_myData = Bytes.append( _myData , Bytes.toBytes( theValue ) );
@@ -386,11 +283,6 @@ public class OscMessage extends OscPacket {
 		return this;
 	}
 
-	/**
-	 * 
-	 * @param theValue
-	 *            String
-	 */
 	public OscMessage add( final String theValue ) {
 		_myTypetag = Bytes.append( _myTypetag , new byte[] { 0x73 } );
 		final byte[] myString = theValue.getBytes( );
@@ -400,11 +292,6 @@ public class OscMessage extends OscPacket {
 		return this;
 	}
 
-	/**
-	 * 
-	 * @param theValue
-	 *            float
-	 */
 	public OscMessage add( final float theValue ) {
 		_myTypetag = Bytes.append( _myTypetag , new byte[] { 0x66 } );
 		_myData = Bytes.append( _myData , Bytes.toBytes( Float.floatToIntBits( theValue ) ) );
@@ -413,11 +300,6 @@ public class OscMessage extends OscPacket {
 		return this;
 	}
 
-	/**
-	 * 
-	 * @param theValue
-	 *            double
-	 */
 	public OscMessage add( final double theValue ) {
 		_myTypetag = Bytes.append( _myTypetag , new byte[] { 0x64 } );
 		_myData = Bytes.append( _myData , Bytes.toBytes( Double.doubleToLongBits( theValue ) ) );
@@ -426,11 +308,6 @@ public class OscMessage extends OscPacket {
 		return this;
 	}
 
-	/**
-	 * 
-	 * @param theValue
-	 *            boolean
-	 */
 	public OscMessage add( final boolean theValue ) {
 		if ( theValue ) {
 			_myTypetag = Bytes.append( _myTypetag , new byte[] { 0x54 } );
@@ -440,61 +317,31 @@ public class OscMessage extends OscPacket {
 		return this;
 	}
 
-	/**
-	 * 
-	 * @param theValue
-	 *            Boolean
-	 */
 	public OscMessage add( final Boolean theValue ) {
 		add( ( theValue ).booleanValue( ) );
 		return this;
 	}
 
-	/**
-	 * 
-	 * @param theValue
-	 *            Integer
-	 */
 	public OscMessage add( final Integer theValue ) {
 		add( theValue.intValue( ) );
 		return this;
 	}
 
-	/**
-	 * 
-	 * @param theValue
-	 *            Float
-	 */
 	public OscMessage add( final Float theValue ) {
 		add( theValue.floatValue( ) );
 		return this;
 	}
 
-	/**
-	 * 
-	 * @param theValue
-	 *            Double
-	 */
 	public OscMessage add( final Double theValue ) {
 		add( theValue.doubleValue( ) );
 		return this;
 	}
 
-	/**
-	 * 
-	 * @param theValue
-	 *            Character
-	 */
 	public OscMessage add( final Character theValue ) {
 		add( theValue.charValue( ) );
 		return this;
 	}
 
-	/**
-	 * 
-	 * @param theValue
-	 *            char
-	 */
 	public OscMessage add( final char theValue ) {
 		_myTypetag = Bytes.append( _myTypetag , new byte[] { 0x63 } );
 		_myData = Bytes.append( _myData , Bytes.toBytes( theValue ) );
@@ -502,18 +349,6 @@ public class OscMessage extends OscPacket {
 		_myArguments[ _myArguments.length - 1 ] = new Character( theValue );
 		return this;
 	}
-
-	/**
-	 * 
-	 * @param channel
-	 *            int
-	 * @param status
-	 *            int
-	 * @param value1
-	 *            int
-	 * @param value2
-	 *            int
-	 */
 
 	public OscMessage add( final int channel , final int status , final int value1 , final int value2 ) {
 		_myTypetag = Bytes.append( _myTypetag , new byte[] { 0x6d } ); // m
@@ -528,11 +363,6 @@ public class OscMessage extends OscPacket {
 		return this;
 	}
 
-	/**
-	 * 
-	 * @param theArray
-	 *            int[]
-	 */
 	public OscMessage add( final int ... theArray ) {
 		for ( int i : theArray ) {
 			add( i );
@@ -540,11 +370,6 @@ public class OscMessage extends OscPacket {
 		return this;
 	}
 
-	/**
-	 * 
-	 * @param theArray
-	 *            char[]
-	 */
 	public OscMessage add( final char ... theArray ) {
 		for ( char c : theArray ) {
 			add( c );
@@ -552,11 +377,6 @@ public class OscMessage extends OscPacket {
 		return this;
 	}
 
-	/**
-	 * 
-	 * @param theArray
-	 *            float[]
-	 */
 	public OscMessage add( final float ... theArray ) {
 		for ( float f : theArray ) {
 			add( f );
@@ -564,11 +384,6 @@ public class OscMessage extends OscPacket {
 		return this;
 	}
 
-	/**
-	 * 
-	 * @param theArray
-	 *            String[]
-	 */
 	public OscMessage add( final String ... theArray ) {
 		for ( String s : theArray ) {
 			add( s );
@@ -576,12 +391,7 @@ public class OscMessage extends OscPacket {
 		return this;
 	}
 
-	/**
-	 * 
-	 * @param theArray
-	 *            byte[]
-	 */
-	public OscMessage add( final byte... theArray ) {
+	public OscMessage add( final byte ... theArray ) {
 		_myTypetag = Bytes.append( _myTypetag , new byte[] { 0x62 } );
 		_myData = Bytes.append( _myData , makeBlob( theArray ) );
 		_myArguments = increase( 1 );
@@ -590,7 +400,6 @@ public class OscMessage extends OscPacket {
 	}
 
 	public OscMessage add( final Object ... os ) {
-
 		for ( Object o : os ) {
 			if ( !add( o ) ) {
 				System.out.println( "type of Argument not defined in osc specs." );
@@ -645,13 +454,6 @@ public class OscMessage extends OscPacket {
 		return true;
 	}
 
-	/**
-	 * 
-	 * @param b
-	 *            byte[]
-	 * @return byte[]
-	 * @invisible
-	 */
 	public static byte[] makeBlob( final byte[] b ) {
 		final int tLength = b.length;
 		byte[] b1 = Bytes.toBytes( tLength );
@@ -664,9 +466,8 @@ public class OscMessage extends OscPacket {
 	}
 
 	/**
-	 * get a value at a specific position in the osc message. the get method returns an OscArgument
-	 * from which the value can be parsed into the right format. e.g. to parse an int from the first
-	 * argument in the osc message, use theOscMessage.get(0).intValue();
+	 * returns an OscArgument from which the value can be parsed into the right format. e.g. to
+	 * parse an int from the first argument in the osc message, use theOscMessage.get(0).intValue();
 	 * 
 	 * @param theIndex
 	 *            int
@@ -680,11 +481,6 @@ public class OscMessage extends OscPacket {
 		return null;
 	}
 
-	/**
-	 * 
-	 * @return String
-	 * @invisible
-	 */
 	public final String toString( ) {
 		return hostAddress + ":" + port + " | " + addrPattern( ) + " " + typetag( );
 	}
@@ -694,15 +490,111 @@ public class OscMessage extends OscPacket {
 	}
 
 	public void print( ) {
-		Logger.println( "-OscMessage----------" );
-		Logger.println( "received from\t" + hostAddress + ":" + port );
-		Logger.println( "addrpattern\t" + Bytes.getAsString( _myAddrPattern ) );
-		Logger.println( "typetag\t" + Bytes.getAsString( _myTypetag ) );
-		Logger.println( Bytes.getAsString( _myArguments ) );
-		Logger.println( "---------------------" );
+		System.out.println( "-OscMessage----------" );
+		System.out.println( "received from\t" + hostAddress + ":" + port );
+		System.out.println( "addrpattern\t" + Bytes.getAsString( _myAddrPattern ) );
+		System.out.println( "typetag\t" + Bytes.getAsString( _myTypetag ) );
+		System.out.println( Bytes.getAsString( _myArguments ) );
+		System.out.println( "---------------------" );
 	}
 
 	public void printData( ) {
 		Bytes.printBytes( _myData );
 	}
+
+	public int intValue( int theIndex ) {
+		return i( getValue( theIndex ) );
+	}
+
+	public float floatValue( int theIndex ) {
+		return f( getValue( theIndex ) );
+	}
+
+	public int charValue( int theIndex ) {
+		return c( getValue( theIndex ) );
+	}
+
+	public double doubleValue( int theIndex ) {
+		return d( getValue( theIndex ) );
+	}
+
+	public long longValue( int theIndex ) {
+		return l( getValue( theIndex ) );
+	}
+
+	public boolean booleanValue( int theIndex ) {
+		return b( getValue( theIndex ) );
+	}
+
+	public String stringValue( int theIndex ) {
+		return s( getValue( theIndex ) );
+	}
+
+	public byte[] bytesValue( int theIndex ) {
+		return bytes( getValue( theIndex ) );
+	}
+
+	public byte[] blobValue( int theIndex ) {
+		return bytesValue( theIndex );
+	}
+
+	private Object getValue( int theIndex ) {
+		if ( theIndex < arguments( ).length ) {
+			return arguments( )[ theIndex ];
+		}
+		indexOutOfBounds( theIndex );
+		return null;
+	}
+
+	public void indexOutOfBounds( int n ) {
+		System.err.println( "ArrayIndexOutOfBounds: index requested " + n + ", expected < " + arguments( ).length );
+	}
+
+	static public int i( Object o ) {
+		return ( o instanceof Number ) ? ( ( Number ) o ).intValue( ) : Integer.MIN_VALUE;
+	}
+
+	static public int c( Object o ) {
+		return ( o instanceof Character ) ? ( ( Character ) o ).charValue( ) : '\0';
+	}
+
+	static public double d( Object o ) {
+		return ( o instanceof Number ) ? ( ( Number ) o ).doubleValue( ) : Double.MIN_VALUE;
+	}
+
+	static public long l( Object o ) {
+		return ( o instanceof Number ) ? ( ( Number ) o ).longValue( ) : Long.MIN_VALUE;
+	}
+
+	static public float f( Object o ) {
+		return ( o instanceof Number ) ? ( ( Number ) o ).floatValue( ) : Float.MIN_VALUE;
+	}
+
+	static public boolean b( Object o ) {
+		return ( o instanceof Boolean ) ? ( ( Boolean ) o ).booleanValue( ) : ( o instanceof Number ) ? ( ( Number ) o ).intValue( ) == 0 ? false : true : false;
+	}
+
+	static public byte[] bytes( Object o ) {
+		return ( o instanceof byte[] ) ? ( byte[] ) o : new byte[ 0 ];
+	}
+
+	static public String s( Object o ) {
+		return o.toString( );
+	}
+
+	@Deprecated
+	public void setAddrPattern( final String theAddrPattern ) {
+		_myAddrPattern = theAddrPattern.getBytes( );
+	}
+
+	@Deprecated
+	public void setAddrPattern( final int theAddrPattern ) {
+		_myAddrPattern = Bytes.toBytes( theAddrPattern );
+	}
+
+	@Deprecated
+	public boolean checkAddrPattern( final String theAddrPattern ) {
+		return theAddrPattern.equals( addrPattern( ) );
+	}
+
 }

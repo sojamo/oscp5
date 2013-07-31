@@ -26,220 +26,231 @@
 package oscP5;
 
 import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.util.ArrayList;
-import netP5.Bytes;
-import netP5.TcpClient;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
-/**
- *
- * @invisible
- */
+import netP5.Bytes;
+
 public abstract class OscPatcher {
 
-  
-protected static final byte ZEROBYTE = 0x00;
+	protected static final byte ZEROBYTE = 0x00;
 
-  protected static final byte KOMMA = 0x2c;
+	protected static final byte KOMMA = 0x2c;
 
-  protected static final long TIMETAG_OFFSET = 2208988800L;
+	protected static final long TIMETAG_OFFSET = 2208988800L;
 
-  protected static final long TIEMTAG_NOW = 1;
+	protected static final long TIEMTAG_NOW = 1;
 
-  protected ArrayList<OscMessage> messages;
+	protected List< OscMessage > messages;
 
-  protected byte[] _myAddrPattern;
+	protected byte[] _myAddrPattern;
 
-  protected int _myAddrInt = -1;
+	protected int _myAddrInt = -1;
 
-  protected byte[] _myTypetag = new byte[0];
+	protected byte[] _myTypetag = new byte[ 0 ];
 
-  protected byte[] _myData = new byte[0];
+	protected byte[] _myData = new byte[ 0 ];
 
-  protected Object[] _myArguments;
-  
-  protected boolean isValid = false;
+	protected Object[] _myArguments;
 
-  protected long timetag = 1;
+	protected boolean isValid = false;
 
-  protected boolean isArray = false;
+	protected long timetag = 1;
 
-  protected byte _myArrayType = 0X00;
+	protected boolean isArray = false;
 
-  protected OscPatcher() {
-  }
+	protected byte _myArrayType = 0X00;
 
+	protected OscPatcher( ) {
+	}
 
-  protected int parseBundle(final byte[] theBytes,
-                            final InetAddress theAddress, final int thePort,
-                            final TcpClient theClient) {
-    if (theBytes.length > OscBundle.BUNDLE_HEADER_SIZE) {
-      timetag = (new Long(Bytes.toLong(Bytes.copy(theBytes, 8, 8)))).longValue();
-      int myPosition = OscBundle.BUNDLE_HEADER_SIZE;
-      messages = new ArrayList<OscMessage>();
-      int myMessageLength = Bytes.toInt(Bytes.copy(theBytes, myPosition,4));
-      while (myMessageLength != 0 && (myMessageLength % 4 == 0)
-             && myPosition < theBytes.length) {
-        myPosition += 4;
-        messages.add(new OscMessage(Bytes.copy(theBytes, myPosition,myMessageLength),
-                                    theAddress,
-                                    thePort,
-                                    timetag,
-                                    theClient));
-        myPosition += myMessageLength;
-        if(myPosition >= theBytes.length)
-            break;
-        myMessageLength = Bytes.toInt(Bytes.copy(theBytes, myPosition,4));
-      }
-    }
-    for (int i = 0; i < messages.size(); i++) {
-      if (!messages.get(i).isValid) {
-        messages.remove(messages.get(i));
-      }
-    }
+	protected int parseBundle( final byte[] theBytes , final InetAddress theAddress , final int thePort ) {
 
-    if (messages.size() > 0) {
-      isValid = true;
-    }
-    return messages.size();
-  }
+		if ( theBytes.length > OscBundle.BUNDLE_HEADER_SIZE ) {
 
+			timetag = ( new Long( Bytes.toLong( Bytes.copy( theBytes , 8 , 8 ) ) ) ).longValue( );
 
-  protected void parseMessage(final byte[] theBytes) {
-    int myLength = theBytes.length;
-    int myIndex = 0;
-    myIndex = parseAddrPattern(theBytes, myLength, myIndex);
-    if (myIndex != -1) {
-      myIndex = parseTypetag(theBytes, myLength, myIndex);
-    }
-    if (myIndex != -1) {
-      _myData = Bytes.copy(theBytes, myIndex);
-      _myArguments = parseArguments(_myData);
-      isValid = true;
-    }
-  }
+			int myPosition = OscBundle.BUNDLE_HEADER_SIZE;
 
+			messages = new ArrayList< OscMessage >( );
 
-  protected int parseAddrPattern(final byte[] theBytes, final int theLength,
-                                 final int theIndex) {
-    if (theLength > 4 && theBytes[4] == KOMMA) {
-      _myAddrInt = Bytes.toInt(Bytes.copy(theBytes, 0, 4));
-    }
-    for (int i = theIndex; i < theLength; i++) {
-      if (theBytes[i] == ZEROBYTE) {
-        _myAddrPattern = Bytes.copy(theBytes, theIndex, i);
-        return i + align(i);
-      }
-    }
-    return -1;
-  }
+			int myMessageLength = Bytes.toInt( Bytes.copy( theBytes , myPosition , 4 ) );
 
+			while ( myMessageLength != 0 && ( myMessageLength % 4 == 0 ) && myPosition < theBytes.length ) {
 
-  protected int parseTypetag(final byte[] theBytes, final int theLength,
-                             int theIndex) {
-    if (theBytes[theIndex] == KOMMA) {
-      theIndex++;
-      for (int i = theIndex; i < theLength; i++) {
-        if (theBytes[i] == ZEROBYTE) {
-          _myTypetag = Bytes.copy(theBytes, theIndex, i - theIndex);
-          return i + align(i);
-        }
-      }
-    }
-    return -1;
-  }
+				myPosition += 4;
 
+				Map< String , Object > m = new HashMap< String , Object >( );
 
-  /**
-   * cast the arguments passed with the incoming osc message and store them in
-   * an object array.
-   *
-   * @param theBytes
-   * @return
-   */
-  protected Object[] parseArguments(final byte[] theBytes) {
-    Object[] myArguments = new Object[0];
-    int myTagIndex = 0;
-    int myIndex = 0;
-    myArguments = new Object[_myTypetag.length];
-    isArray = (_myTypetag.length > 0) ? true : false;
-    while (myTagIndex < _myTypetag.length) {
-      /* check if we still save the arguments as an array */
-      if (myTagIndex == 0) {
-        _myArrayType = _myTypetag[myTagIndex];
-      } else {
-        if (_myTypetag[myTagIndex] != _myArrayType) {
-          isArray = false;
-        }
-      }
-      switch (_myTypetag[myTagIndex]) {
-      case (0x63): // char c
-        myArguments[myTagIndex] = (new Character((char) (Bytes
-                .toInt(Bytes.copy(theBytes, myIndex, 4)))));
-        myIndex += 4;
-        break;
-      case (0x69): // int i
-        myArguments[myTagIndex] = (new Integer(Bytes.toInt(Bytes.copy(
-                theBytes, myIndex, 4))));
-        myIndex += 4;
-        break;
-      case (0x66): // float f
-        myArguments[myTagIndex] = (new Float(Bytes.toFloat(Bytes.copy(
-                theBytes, myIndex, 4))));
-        myIndex += 4;
+				m.put( "data" , Bytes.copy( theBytes , myPosition , myMessageLength ) );
 
-        break;
-      case (0x6c): // long l
-      case (0x68): // long h
-        myArguments[myTagIndex] = (new Long(Bytes.toLong(Bytes.copy(
-                theBytes, myIndex, 8))));
-        myIndex += 8;
-        break;
-      case (0x64): // double d
-        myArguments[myTagIndex] = (new Double(Bytes.toDouble(Bytes
-                .copy(theBytes, myIndex, 8))));
-        myIndex += 8;
-        break;
-      case (0x53): // Symbol S
-      case (0x73): // String s
-        int newIndex = myIndex;
-        StringBuffer stringBuffer = new StringBuffer();
+				m.put( "socket-address" , new InetSocketAddress( theAddress , thePort ) );
 
-        stringLoop:
-                do {
-          if (theBytes[newIndex] == 0x00) {
-            break stringLoop;
-          } else {
-            stringBuffer.append((char) theBytes[newIndex]);
-          }
-          newIndex++;
-        } while (newIndex < theBytes.length);
+				messages.add( new OscMessage( m ) );
 
-        myArguments[myTagIndex] = (stringBuffer.toString());
-        myIndex = newIndex + align(newIndex);
-        break;
-      case 0x62: // byte[] b - blob
-        int myLen = Bytes.toInt(Bytes.copy(theBytes, myIndex, 4));
-        myIndex += 4;
-        myArguments[myTagIndex] = Bytes.copy(theBytes, myIndex, myLen);
-        myIndex += myLen + (align(myLen) % 4);
-        break;
-      case 0x6d: // midi m
-        myArguments[myTagIndex] = Bytes.copy(theBytes, myIndex, 4);
-        myIndex += 4;
-        break;
-        /*
-         * no arguments for typetags T,F,N T = true F = false N = false
-         */
-      }
-      myTagIndex++;
-    }
-    _myData = Bytes.copy(_myData, 0, myIndex);
-    return myArguments;
-  }
+				myPosition += myMessageLength;
 
+				if ( myPosition >= theBytes.length ) {
+					break;
+				}
 
-  protected static int align(int theInt) {
-    return (4 - (theInt % 4));
-  }
+				myMessageLength = Bytes.toInt( Bytes.copy( theBytes , myPosition , 4 ) );
+			}
+
+		}
+
+		List f = new ArrayList( );
+
+		for ( OscMessage m : messages ) {
+			if ( !m.isValid ) {
+				f.add( m );
+			}
+		}
+
+		messages.removeAll( f );
+
+		isValid = ( messages.size( ) > 0 ) ? true : false;
+
+		return messages.size( );
+
+	}
+
+	protected void parseMessage( final byte[] theBytes ) {
+
+		int myLength = theBytes.length;
+
+		int myIndex = 0;
+
+		myIndex = parseAddrPattern( theBytes , myLength , myIndex );
+
+		if ( myIndex != -1 ) {
+
+			myIndex = parseTypetag( theBytes , myLength , myIndex );
+
+		}
+
+		if ( myIndex != -1 ) {
+
+			_myData = Bytes.copy( theBytes , myIndex );
+
+			_myArguments = parseArguments( _myData );
+
+			isValid = true;
+
+		}
+
+	}
+
+	protected int parseAddrPattern( final byte[] theBytes , final int theLength , final int theIndex ) {
+		if ( theLength > 4 && theBytes[ 4 ] == KOMMA ) {
+			_myAddrInt = Bytes.toInt( Bytes.copy( theBytes , 0 , 4 ) );
+		}
+		for ( int i = theIndex ; i < theLength ; i++ ) {
+			if ( theBytes[ i ] == ZEROBYTE ) {
+				_myAddrPattern = Bytes.copy( theBytes , theIndex , i );
+				return i + align( i );
+			}
+		}
+		return -1;
+	}
+
+	protected int parseTypetag( final byte[] theBytes , final int theLength , int theIndex ) {
+		if ( theBytes[ theIndex ] == KOMMA ) {
+			theIndex++;
+			for ( int i = theIndex ; i < theLength ; i++ ) {
+				if ( theBytes[ i ] == ZEROBYTE ) {
+					_myTypetag = Bytes.copy( theBytes , theIndex , i - theIndex );
+					return i + align( i );
+				}
+			}
+		}
+		return -1;
+	}
+
+	/**
+	 * cast the arguments passed with the incoming osc message and store them in an object array.
+	 * 
+	 * @param theBytes
+	 * @return
+	 */
+	protected Object[] parseArguments( final byte[] theBytes ) {
+		Object[] myArguments = new Object[ 0 ];
+		int myTagIndex = 0;
+		int myIndex = 0;
+		myArguments = new Object[ _myTypetag.length ];
+		isArray = ( _myTypetag.length > 0 ) ? true : false;
+		while ( myTagIndex < _myTypetag.length ) {
+			/* check if we still save the arguments as an array */
+			if ( myTagIndex == 0 ) {
+				_myArrayType = _myTypetag[ myTagIndex ];
+			} else {
+				if ( _myTypetag[ myTagIndex ] != _myArrayType ) {
+					isArray = false;
+				}
+			}
+			switch ( _myTypetag[ myTagIndex ] ) {
+			case ( 0x63 ): // char c
+				myArguments[ myTagIndex ] = ( new Character( ( char ) ( Bytes.toInt( Bytes.copy( theBytes , myIndex , 4 ) ) ) ) );
+				myIndex += 4;
+				break;
+			case ( 0x69 ): // int i
+				myArguments[ myTagIndex ] = ( new Integer( Bytes.toInt( Bytes.copy( theBytes , myIndex , 4 ) ) ) );
+				myIndex += 4;
+				break;
+			case ( 0x66 ): // float f
+				myArguments[ myTagIndex ] = ( new Float( Bytes.toFloat( Bytes.copy( theBytes , myIndex , 4 ) ) ) );
+				myIndex += 4;
+
+				break;
+			case ( 0x6c ): // long l
+			case ( 0x68 ): // long h
+				myArguments[ myTagIndex ] = ( new Long( Bytes.toLong( Bytes.copy( theBytes , myIndex , 8 ) ) ) );
+				myIndex += 8;
+				break;
+			case ( 0x64 ): // double d
+				myArguments[ myTagIndex ] = ( new Double( Bytes.toDouble( Bytes.copy( theBytes , myIndex , 8 ) ) ) );
+				myIndex += 8;
+				break;
+			case ( 0x53 ): // Symbol S
+			case ( 0x73 ): // String s
+				int newIndex = myIndex;
+				StringBuffer stringBuffer = new StringBuffer( );
+
+				stringLoop: do {
+					if ( theBytes[ newIndex ] == 0x00 ) {
+						break stringLoop;
+					} else {
+						stringBuffer.append( ( char ) theBytes[ newIndex ] );
+					}
+					newIndex++;
+				} while ( newIndex < theBytes.length );
+
+				myArguments[ myTagIndex ] = ( stringBuffer.toString( ) );
+				myIndex = newIndex + align( newIndex );
+				break;
+			case 0x62: // byte[] b - blob
+				int myLen = Bytes.toInt( Bytes.copy( theBytes , myIndex , 4 ) );
+				myIndex += 4;
+				myArguments[ myTagIndex ] = Bytes.copy( theBytes , myIndex , myLen );
+				myIndex += myLen + ( align( myLen ) % 4 );
+				break;
+			case 0x6d: // midi m
+				myArguments[ myTagIndex ] = Bytes.copy( theBytes , myIndex , 4 );
+				myIndex += 4;
+				break;
+			/* no arguments for typetags T,F,N T = true F = false N = false */
+			}
+			myTagIndex++;
+		}
+		_myData = Bytes.copy( _myData , 0 , myIndex );
+		return myArguments;
+	}
+
+	protected static int align( int theInt ) {
+		return ( 4 - ( theInt % 4 ) );
+	}
 
 }

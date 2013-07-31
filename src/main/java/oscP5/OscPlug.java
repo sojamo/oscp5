@@ -26,13 +26,11 @@
 package oscP5;
 
 import java.lang.reflect.Method;
-import netP5.Logger;
+import java.util.logging.Logger;
 
-/**
- * 
- * @invisible
- */
 public class OscPlug {
+
+	private final static Logger LOGGER = Logger.getLogger( OscPlug.class.getName( ) );
 
 	private boolean _isValid = true;
 
@@ -45,200 +43,253 @@ public class OscPlug {
 	private String _myMethodName;
 
 	private Object _myObject;
-	
+
 	public Method method = null;
 
 	private int _myChecker = 0;
 
 	protected boolean isArray = false;
 
-	private static final  int CHECK_ADDRPATTERN_TYPETAG = 0;
+	private static final int CHECK_ADDRPATTERN_TYPETAG = 0;
 
 	private static final int CHECK_ADDRPATTERN = 1;
 
 	private static final int CHECK_TYPETAG = 2;
 
-	public void plug(final Object theObject, final String theMethodName,
-			final String theAddrPattern) {
+	public void plug( final Object theObject , final String theMethodName , final String theAddrPattern ) {
+		
 		_myObject = theObject;
+		
 		_myMethodName = theMethodName;
+		
 		_myAddrPattern = theAddrPattern;
+		
 		_myChecker = CHECK_ADDRPATTERN_TYPETAG;
-		if (_myMethodName != null && _myMethodName.length() > 0) {
-			Class<?> myClass = theObject.getClass();
-			Class<?>[] myParams = null;
-			Method[] myMethods = myClass.getMethods();
+		
+		if ( _myMethodName != null && _myMethodName.length( ) > 0 ) {
+			
+			Class< ? > myClass = theObject.getClass( );
+			
+			Class< ? >[] myParams = null;
+			
+			Method[] myMethods = myClass.getMethods( );
+			
 			_myTypetag = "";
-			for (int i = 0; i < myMethods.length; i++) {
-				if ((myMethods[i].getName()).equals(_myMethodName)) {
-					myParams = myMethods[i].getParameterTypes();
-					for (int j = 0; j < myParams.length; j++) {
-						_myTypetag += checkType(myParams[j].getName());
+			
+			for ( int i = 0 ; i < myMethods.length ; i++ ) {
+				
+				if ( ( myMethods[ i ].getName( ) ).equals( _myMethodName ) ) {
+					
+					myParams = myMethods[ i ].getParameterTypes( );
+					
+					for ( int j = 0 ; j < myParams.length ; j++ ) {
+						
+						_myTypetag += checkType( myParams[ j ].getName( ) );
+						
 					}
+					
 					break;
+					
 				}
 			}
-			if (myParams != null) {
-				makeMethod(theObject.getClass(), myParams);
+			if ( myParams != null ) {
+				
+				makeMethod( theObject.getClass( ) , myParams );
+				
 			} else {
-				Logger.printWarning("OscPlug.plug()",
-						"no arguments found for method " + _myMethodName);
+				
+				LOGGER.warning( "OscPlug, no arguments found for method " + _myMethodName );
+				
 			}
 		}
 	}
 
-	public void plug(final Object theObject, final String theMethodName,
-			final String theAddrPattern, final String theTypetag) {
+	public void plug( final Object theObject , final String theMethodName , final String theAddrPattern , final String theTypetag ) {
+		
 		_myObject = theObject;
+		
 		_myMethodName = theMethodName;
+		
 		_myAddrPattern = theAddrPattern;
+		
 		_myTypetag = theTypetag;
+		
 		_myChecker = CHECK_ADDRPATTERN_TYPETAG;
 
-		if (_myMethodName != null && _myMethodName.length() > 0) {
-			int tLen = _myTypetag.length();
-			Class<?>[] myParams;
-			if (tLen > 0) {
-				myParams = getArgs(_myTypetag);
+		if ( _myMethodName != null && _myMethodName.length( ) > 0 ) {
+			
+			int tLen = _myTypetag.length( );
+			
+			Class< ? >[] myParams;
+			
+			if ( tLen > 0 ) {
+				
+				myParams = getArgs( _myTypetag );
+				
 			} else {
+				
 				myParams = null;
+				
 			}
 
-			if (_isValid) {
-				makeMethod(theObject.getClass(), myParams);
+			if ( _isValid ) {
+				
+				makeMethod( theObject.getClass( ) , myParams );
+				
 			}
+			
 		}
 	}
 
-	public Object getObject() {
+	public Object getObject( ) {
 		return _myObject;
 	}
 
-	private void makeMethod(final Class<?> theObjectsClass, final Class<?>[] theClass) {
+	private void makeMethod( final Class< ? > theObjectsClass , final Class< ? >[] theClass ) {
+		
 		try {
-			method = theObjectsClass.getDeclaredMethod(_myMethodName, theClass);
+			
+			method = theObjectsClass.getDeclaredMethod( _myMethodName , theClass );
+			
 			_myPattern = _myAddrPattern + _myTypetag;
-			method.setAccessible(true);
-			Logger.printProcess("OscPlug", "plugging " + theObjectsClass
-					+ " | " + "addrPattern:" + _myAddrPattern + " typetag:"
-					+ _myTypetag + " method:" + _myMethodName);
+			
+			method.setAccessible( true );
+			
+			LOGGER.finest( "plugging " + theObjectsClass + " | " + "addrPattern:" + _myAddrPattern + " typetag:" + _myTypetag + " method:" + _myMethodName );
 
-		} catch (Exception e) {
-			final Class<?> theObjecsSuperClass = theObjectsClass.getSuperclass();
-			if (theObjecsSuperClass.equals(Object.class)) {
-				if (theObjectsClass.getName().equals("java.awt.Component") == false) { // applet fix.
-					Logger.printError("OscPlug", "method "
-							+ theObjectsClass.getName()
-							+ " does not exist in your code.");
+		} catch ( Exception e ) {
+			
+			final Class< ? > theObjecsSuperClass = theObjectsClass.getSuperclass( );
+			
+			if ( theObjecsSuperClass.equals( Object.class ) ) {
+				
+				if ( theObjectsClass.getName( ).equals( "java.awt.Component" ) == false ) {
+					
+					LOGGER.warning( "OscPlug, method " + theObjectsClass.getName( ) + " does not exist in your code." );
+					
 				}
 			} else {
-				makeMethod(theObjecsSuperClass, theClass);
+				
+				makeMethod( theObjecsSuperClass , theClass );
+				
 			}
 		}
 		return;
 	}
 
-	public boolean checkMethod(final OscMessage theOscMessage,
-			final boolean isArray) {
+	public boolean checkMethod( final OscMessage theOscMessage , final boolean isArray ) {
+		
 		String myTypetag;
-		/*
-		 * if theFlag is true and the arguments of theOscmessage can be
-		 * represented as an array of the same type, then only fetch the first
-		 * character of the typetag, otherwise use the full typetag.
-		 */
-		if (isArray) {
-			myTypetag = "" + theOscMessage.typetag().charAt(0);
+		
+		/* if theFlag is true and the arguments of theOscmessage can be represented as an array of
+		 * the same type, then only fetch the first character of the typetag, otherwise use the full
+		 * typetag. */
+		
+		if ( isArray ) {
+			
+			myTypetag = "" + theOscMessage.typetag( ).charAt( 0 );
+			
 		} else {
-			myTypetag = theOscMessage.typetag();
+			
+			myTypetag = theOscMessage.typetag( );
+			
 		}
-		switch (_myChecker) {
-		case (CHECK_ADDRPATTERN_TYPETAG):
-			String thePattern = theOscMessage.addrPattern() + myTypetag;
-			return thePattern.equals(_myPattern);
-		case (CHECK_ADDRPATTERN):
-			return (theOscMessage.addrPattern().equals(_myAddrPattern));
-		case (CHECK_TYPETAG):
-			return (myTypetag.equals(_myTypetag));
+		switch ( _myChecker ) {
+		
+		case ( CHECK_ADDRPATTERN_TYPETAG ):
+			
+			String thePattern = theOscMessage.addrPattern( ) + myTypetag;
+		
+			return thePattern.equals( _myPattern );
+			
+		case ( CHECK_ADDRPATTERN ):
+			
+			return ( theOscMessage.addrPattern( ).equals( _myAddrPattern ) );
+		
+		case ( CHECK_TYPETAG ):
+			
+			return ( myTypetag.equals( _myTypetag ) );
+		
 		default:
+			
 			return false;
 		}
 	}
 
-	public Method getMethod() {
+	public Method getMethod( ) {
 		return method;
 	}
-	
-	
-	public String checkType(final String theName) {
-		if (theName.equals("int")) {
+
+	public String checkType( final String theName ) {
+		if ( theName.equals( "int" ) ) {
 			return "i";
-		} else if (theName.equals("float")) {
+		} else if ( theName.equals( "float" ) ) {
 			return "f";
-		} else if (theName.equals("java.lang.String")) {
+		} else if ( theName.equals( "java.lang.String" ) ) {
 			return "s";
-		} else if (theName.equals("[Ljava.lang.String;")) {
+		} else if ( theName.equals( "[Ljava.lang.String;" ) ) {
 			isArray = true;
 			return "s";
 		}
 
-		else if (theName.equals("char")) {
+		else if ( theName.equals( "char" ) ) {
 			return "c";
-		} else if (theName.equals("[B")) {
+		} else if ( theName.equals( "[B" ) ) {
 			return "b";
-		} else if (theName.equals("[F")) {
+		} else if ( theName.equals( "[F" ) ) {
 			isArray = true;
 			return "f";
-		} else if (theName.equals("[I")) {
+		} else if ( theName.equals( "[I" ) ) {
 			isArray = true;
 			return "i";
 		}
 
-		else if (theName.equals("double")) {
+		else if ( theName.equals( "double" ) ) {
 			return "d";
-		} else if (theName.equals("boolean")) {
+		} else if ( theName.equals( "boolean" ) ) {
 			return "T";
-		} else if (theName.equals("long")) {
+		} else if ( theName.equals( "long" ) ) {
 			return "h";
 		}
 		return "";
 	}
 
-	private Class<?>[] getArgs(final String theArgs) {
-		char[] tChar = theArgs.toCharArray();
-		int tLen = theArgs.length();
-		Class<?>[] tClass = new Class[tLen];
-		for (int i = 0; i < tLen; i++) {
-			switch (tChar[i]) {
-			case ('i'):
-				tClass[i] = (isArray == true) ? int[].class : int.class;
+	private Class< ? >[] getArgs( final String theArgs ) {
+		char[] tChar = theArgs.toCharArray( );
+		int tLen = theArgs.length( );
+		Class< ? >[] tClass = new Class[ tLen ];
+		for ( int i = 0 ; i < tLen ; i++ ) {
+			switch ( tChar[ i ] ) {
+			case ( 'i' ):
+				tClass[ i ] = ( isArray == true ) ? int[].class : int.class;
 				break;
-			case ('S'):
-			case ('s'):
-				tClass[i] = (isArray == true) ? String[].class : String.class;
+			case ( 'S' ):
+			case ( 's' ):
+				tClass[ i ] = ( isArray == true ) ? String[].class : String.class;
 				break;
-			case ('f'):
-				tClass[i] = (isArray == true) ? float[].class : float.class;
+			case ( 'f' ):
+				tClass[ i ] = ( isArray == true ) ? float[].class : float.class;
 				break;
-			case ('d'):
-				tClass[i] = double.class;
+			case ( 'd' ):
+				tClass[ i ] = double.class;
 				break;
-			case ('c'):
-				tClass[i] = char.class;
+			case ( 'c' ):
+				tClass[ i ] = char.class;
 				break;
-			case ('h'):
-			case ('l'):
-				tClass[i] = long.class;
+			case ( 'h' ):
+			case ( 'l' ):
+				tClass[ i ] = long.class;
 				break;
-			case ('T'):
-				tClass[i] = boolean.class;
+			case ( 'T' ):
+				tClass[ i ] = boolean.class;
 				break;
-			case ('F'):
-				tClass[i] = boolean.class;
+			case ( 'F' ):
+				tClass[ i ] = boolean.class;
 				break;
-			case ('b'):
-				tClass[i] = byte[].class;
+			case ( 'b' ):
+				tClass[ i ] = byte[].class;
 				break;
-			case ('o'):
+			case ( 'o' ):
 				_myChecker = CHECK_ADDRPATTERN;
 				tClass = new Class[] { Object[].class };
 				break;
@@ -248,9 +299,9 @@ public class OscPlug {
 				break;
 			}
 		}
-		if (!_isValid) {
+		if ( !_isValid ) {
 			tClass = null;
-			System.out.println("ERROR could't plug method " + _myMethodName);
+			System.out.println( "ERROR could't plug method " + _myMethodName );
 		}
 		return tClass;
 	}

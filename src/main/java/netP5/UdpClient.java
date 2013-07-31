@@ -1,49 +1,117 @@
-/**
- * A network library for processing which supports UDP, TCP and Multicast.
- *
- * ##copyright##
- *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
- * 
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
- * 
- * You should have received a copy of the GNU Lesser General
- * Public License along with this library; if not, write to the
- * Free Software Foundation, Inc., 59 Temple Place, Suite 330,
- * Boston, MA  02111-1307  USA
- * 
- * @author		##author##
- * @modified	##date##
- * @version		##version##
- */
-
 package netP5;
 
+import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.net.SocketAddress;
+import java.nio.ByteBuffer;
+import java.nio.channels.DatagramChannel;
+import java.util.Collection;
 
-/**
- * @author andreas schlegel
- */
-public class UdpClient extends AbstractUdpClient {
+public class UdpClient implements Sender {
 
-  public UdpClient() {
-    super();
-  }
+	private final InetSocketAddress socket;
 
+	private DatagramChannel channel;
 
-  public UdpClient(String theAddr, int thePort) {
-    super(theAddr, thePort);
-  }
+	@SuppressWarnings( "unused" )
+	private UdpClient( ) {
+		socket = null;
+	}
 
+	public UdpClient( String theHost , int thePort ) {
 
-  public UdpClient(NetAddress theNetAddress) {
-    super(theNetAddress.address(), theNetAddress.port);
-  }
+		socket = new InetSocketAddress( theHost , thePort );
 
+		try {
 
+			channel = DatagramChannel.open( );
+
+			channel.connect( socket );
+
+		} catch ( IOException e ) {
+
+			e.printStackTrace( );
+
+		}
+
+		/* TODO initialize buffer as well? */
+
+	}
+
+	public boolean send( byte[] theContent ) {
+		try {
+
+			ByteBuffer buffer = ByteBuffer.allocate( theContent.length );
+
+			buffer.clear( );
+
+			buffer.put( theContent );
+
+			buffer.flip( );
+
+			channel.send( buffer , socket );
+
+			return true;
+
+		} catch ( Exception e ) {
+			System.err.println( "Could not send datagram " + e );
+		}
+		return false;
+	}
+
+	public boolean send( byte[] theContent , Collection< InetSocketAddress > theAddress ) {
+
+		InetSocketAddress[] o = new InetSocketAddress[ theAddress.size( ) ];
+
+		return send( theContent , theAddress.toArray( o ) );
+	}
+
+	public boolean send( byte[] theContent , String theHost , int thePort ) {
+
+		return send( theContent , new InetSocketAddress( theHost , thePort ) );
+
+	}
+
+	public boolean send( byte[] theContent , SocketAddress ... theAddress ) {
+		try {
+
+			ByteBuffer buffer = ByteBuffer.allocate( theContent.length );
+
+			buffer.clear( );
+
+			buffer.put( theContent );
+
+			buffer.flip( );
+
+			DatagramChannel channel = DatagramChannel.open( );
+
+			for ( SocketAddress addr : theAddress ) {
+				channel.send( buffer , addr );
+			}
+
+			return true;
+
+		} catch ( Exception e ) {
+			System.err.println( "Could not send datagram " + e );
+		}
+		return false;
+	}
+
+	public static void main( String args[] ) {
+
+		UdpClient udp = new UdpClient( "127.0.0.1" , 10000 );
+
+		for ( int i = 0 ; i < 10 ; i++ ) {
+
+			// UdpClient.send( ( "hello" + i ).getBytes( ) , "127.0.0.1" , 10000 );
+
+			udp.send( ( "hello" + i ).getBytes( ) );
+
+			try {
+				Thread.sleep( 100 );
+			} catch ( InterruptedException e ) {
+				e.printStackTrace( );
+			}
+		}
+	}
 }

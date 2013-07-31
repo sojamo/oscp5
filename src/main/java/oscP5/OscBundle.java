@@ -25,165 +25,145 @@
 
 package oscP5;
 
+import static oscP5.OscP5.bytes;
 
 import java.net.DatagramPacket;
+import java.net.InetSocketAddress;
+import java.net.SocketAddress;
 import java.util.ArrayList;
-import netP5.Bytes;
-import netP5.TcpPacket;
+import java.util.Map;
 
+import netP5.Bytes;
 
 /**
- * Osc Bundles are collections of Osc Messages. use bundles to send multiple
- * osc messages to one destination. the OscBundle timetag is supported for
- * sending but not for receiving yet.
- * @related OscMessage
- * @related OscP5
- * @example oscP5bundle
+ * Osc Bundles are collections of Osc Messages. use bundles to send multiple osc messages to one
+ * destination. the OscBundle timetag is supported for sending but not for receiving yet.
  */
 public class OscBundle extends OscPacket {
 
-  protected static final int BUNDLE_HEADER_SIZE = 16;
+	protected static final int BUNDLE_HEADER_SIZE = 16;
 
-  protected static final byte[] BUNDLE_AS_BYTES = {0x23, 0x62, 0x75, 0x6E,
-                                                  0x64, 0x6C, 0x65, 0x00};
+	protected static final byte[] BUNDLE_AS_BYTES = { 0x23 , 0x62 , 0x75 , 0x6E , 0x64 , 0x6C , 0x65 , 0x00 };
 
-  private int _myMessageSize = 0;
+	private int _myMessageSize = 0;
 
-  /**
-   * instantiate a new OscBundle object.
-   */
-  public OscBundle() {
-    messages = new ArrayList<OscMessage>();
-  }
+	public OscBundle( ) {
 
+		messages = new ArrayList< OscMessage >( );
 
-  protected OscBundle(DatagramPacket theDatagramPacket) {
-    inetAddress = theDatagramPacket.getAddress();
-    port = theDatagramPacket.getPort();
-    hostAddress = inetAddress.toString();
-    _myMessageSize = parseBundle(theDatagramPacket.getData(), inetAddress, port, null);
-    _myType = BUNDLE;
-  }
+	}
 
+	OscBundle( Map m ) {
+		Object o = m.get( "socket-address" );
+		if ( ! ( o instanceof SocketAddress ) ) {
+			System.out.println( "OscBundle socket-address malformatted, expected SocketAddress but received " + o );
+		} else {
+			_myMessageSize = parseBundle( bytes( m.get( "data" ) ) , ( ( InetSocketAddress ) o ).getAddress( ) , ( ( InetSocketAddress ) o ).getPort( ) );
+		}
+	}
 
-  protected OscBundle(TcpPacket thePacket) {
-    _myTcpClient = thePacket.getTcpConnection();
-    inetAddress = _myTcpClient.netAddress().inetaddress();
-    port = _myTcpClient.netAddress().port();
-    hostAddress = inetAddress.toString();
-    _myMessageSize = parseBundle(thePacket.getData(), inetAddress, port, _myTcpClient);
-    _myType = BUNDLE;
-  }
+	protected OscBundle( DatagramPacket theDatagramPacket ) {
 
+		inetAddress = theDatagramPacket.getAddress( );
 
-  /**
-   * add an osc message to the osc bundle.
-   * @param theOscMessage OscMessage
-   */
-  public void add(OscMessage theOscMessage) {
-    messages.add(new OscMessage(theOscMessage));
-    _myMessageSize = messages.size();
-  }
+		port = theDatagramPacket.getPort( );
 
+		hostAddress = inetAddress.toString( );
 
-  /**
-   * clear and reset the osc bundle for reusing.
-   * @example oscP5bundle
-   */
-  public void clear() {
-    messages = new ArrayList<OscMessage>();
-  }
+		_myMessageSize = parseBundle( theDatagramPacket.getData( ) , inetAddress , port );
 
+		_myType = BUNDLE;
 
-  /**
-   * remove an OscMessage from an OscBundle.
-   * @param theIndex int
-   */
-  public void remove(int theIndex) {
-    messages.remove(theIndex);
-  }
+	}
 
+	public void add( OscMessage ... theOscMessages ) {
 
-  /**
-   *
-   * @param theOscMessage OscMessage
-   */
-  public void remove(OscMessage theOscMessage) {
-    messages.remove(theOscMessage);
-  }
+		for ( OscMessage m : theOscMessages ) {
+			messages.add( new OscMessage( m ) );
+			/* duplicate the OSC message ( sure this is a deep copy? ) */
+		}
 
+		_myMessageSize = messages.size( );
 
-  /**
-   * request an osc message inside the osc bundle array,
-   * @param theIndex int
-   * @return OscMessage
-   */
-  public OscMessage getMessage(int theIndex) {
-    return messages.get(theIndex);
-  }
+	}
 
+	public void clear( ) {
 
-  /**
-   * get the size of the osc bundle array which contains the osc messages.
-   * @return int
-   * @example oscP5bundle
-   */
-  public int size() {
-    return _myMessageSize;
-  }
+		messages = new ArrayList< OscMessage >( );
 
+	}
 
-  /**
-   * set the timetag of an osc bundle. timetags are used to synchronize events and
-   * execute events at a given time in the future or immediately. timetags can
-   * only be set for osc bundles, not for osc messages. oscP5 supports receiving
-   * timetags, but does not queue messages for execution at a set time.
-   * @param theTime long
-   * @example oscP5bundle
-   */
-  public void setTimetag(long theTime) {
-    final long secsSince1900 = theTime / 1000 + TIMETAG_OFFSET;
-    final long secsFractional = ((theTime % 1000) << 32) / 1000;
-    timetag = (secsSince1900 << 32) | secsFractional;
-  }
+	public void remove( int theIndex ) {
 
+		messages.remove( theIndex );
 
-  /**
-   * returns the current time in milliseconds. use with setTimetag.
-   * @return long
-   */
-  public static long now() {
-    return System.currentTimeMillis();
-  }
+	}
 
+	public void remove( OscMessage theOscMessage ) {
 
-  /**
-   * returns a timetag as byte array.
-   * @return byte[]
-   */
-  public byte[] timetag() {
-    return Bytes.toBytes(timetag);
-  }
+		messages.remove( theOscMessage );
 
+	}
 
-  /**
-   * @todo get timetag as Date
-   */
+	public OscMessage getMessage( int theIndex ) {
 
-  /**
-   *
-   * @return byte[]
-   * @invisible
-   */
-  public byte[] getBytes() {
-    byte[] myBytes = new byte[0];
-    myBytes = Bytes.append(myBytes, BUNDLE_AS_BYTES);
-    myBytes = Bytes.append(myBytes, timetag());
-    for (int i = 0; i < size(); i++) {
-      byte[] tBytes = getMessage(i).getBytes();
-      myBytes = Bytes.append(myBytes, Bytes.toBytes(tBytes.length));
-      myBytes = Bytes.append(myBytes, tBytes);
-    }
-    return myBytes;
-  }
+		return messages.get( theIndex );
+
+	}
+
+	public int size( ) {
+
+		return _myMessageSize;
+
+	}
+
+	/**
+	 * TODO set the timetag of an osc bundle. timetags are used to synchronize events and execute
+	 * events at a given time in the future or immediately. timetags can only be set for osc
+	 * bundles, not for osc messages. oscP5 supports receiving timetags, but does not queue messages
+	 * for execution at a set time.
+	 * 
+	 */
+	public void setTimetag( long theTime ) {
+
+		final long secsSince1900 = theTime / 1000 + TIMETAG_OFFSET;
+
+		final long secsFractional = ( ( theTime % 1000 ) << 32 ) / 1000;
+
+		timetag = ( secsSince1900 << 32 ) | secsFractional;
+
+	}
+
+	public static long now( ) {
+
+		return System.currentTimeMillis( );
+
+	}
+
+	public byte[] timetag( ) {
+
+		return Bytes.toBytes( timetag );
+
+	}
+
+	public byte[] getBytes( ) {
+
+		byte[] myBytes = new byte[ 0 ];
+
+		myBytes = Bytes.append( myBytes , BUNDLE_AS_BYTES );
+
+		myBytes = Bytes.append( myBytes , timetag( ) );
+
+		for ( int i = 0 ; i < size( ) ; i++ ) {
+
+			byte[] tBytes = getMessage( i ).getBytes( );
+
+			myBytes = Bytes.append( myBytes , Bytes.toBytes( tBytes.length ) );
+
+			myBytes = Bytes.append( myBytes , tBytes );
+
+		}
+
+		return myBytes;
+	}
 }

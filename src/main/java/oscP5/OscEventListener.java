@@ -25,13 +25,8 @@
 
 package oscP5;
 
-/**
- * 
- * @invisible
- */
 public interface OscEventListener {
 
-	public void oscEvent(OscMessage theMessage);
+	public void oscEvent( OscMessage theMessage );
 
-	public void oscStatus(OscStatus theStatus);
 }

@@ -1,4 +1,4 @@
-<project name="ProcessingLibs" default="clean" basedir="../">
+<project name="oscP5 compile" default="clean" basedir="../">
 
     
 <!--	

@@ -25,145 +25,83 @@
 
 package netP5;
 
-
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
-/**
- * NetAddressList is an arraylist of netaddresses.
- * @author andreas schlegel
- */
+@Deprecated
 public class NetAddressList {
-  protected ArrayList _myList = new ArrayList();
 
-  /**
-   *
-   * @param theNetAddress NetAddress
-   */
-  public void add(NetAddress theNetAddress) {
-    if (theNetAddress.isValid == true) {
-      _myList.add(theNetAddress);
-    }
-  }
+	protected List< NetAddress > _myList = new ArrayList< NetAddress >( );
 
+	public void add( NetAddress theNetAddress ) {
+		if ( theNetAddress.isValid == true ) {
+			_myList.add( theNetAddress );
+		}
+	}
 
+	public void add( String theAddress , int thePort ) {
+		NetAddress myOscHost = new NetAddress( theAddress , thePort );
+		if ( myOscHost.isValid == true ) {
+			_myList.add( myOscHost );
+		}
+	}
 
-  /**
-   *
-   * @param theAddress String
-   * @param thePort int
-   */
-  public void add(String theAddress, int thePort) {
-    NetAddress myOscHost = new NetAddress(theAddress, thePort);
-    if (myOscHost.isValid == true) {
-      _myList.add(myOscHost);
-    }
-  }
+	public void remove( String theAddress , int thePort ) {
+		for ( int i = 0 ; i < _myList.size( ) ; i++ ) {
+			NetAddress myHost = ( ( NetAddress ) _myList.get( i ) );
+			if ( myHost.hostAddress.equals( theAddress ) && myHost.port == thePort ) {
+				_myList.remove( myHost );
+			}
+		}
+	}
 
+	public void remove( NetAddress theNetAddress ) {
+		_myList.remove( theNetAddress );
+	}
 
+	public NetAddress get( String theIPaddress , int thePort ) {
+		for ( int i = 0 ; i < _myList.size( ) ; i++ ) {
+			NetAddress myHost = ( ( NetAddress ) _myList.get( i ) );
+			if ( myHost.hostAddress.equals( theIPaddress ) && myHost.port == thePort ) {
+				return myHost;
+			}
+		}
+		return null;
 
-  /**
-   *
-   * @param theAddress String
-   * @param thePort int
-   */
-  public void remove(String theAddress, int thePort) {
-    for (int i = 0; i < _myList.size(); i++) {
-      NetAddress myHost = ( (NetAddress) _myList.get(i));
-      if (myHost.hostAddress.equals(theAddress) && myHost.port == thePort) {
-        _myList.remove(myHost);
-      }
-    }
-  }
+	}
 
+	public boolean contains( NetAddress theNetAddress ) {
+		if ( _myList.contains( theNetAddress ) ) {
+			return true;
+		}
+		return false;
+	}
 
+	public boolean contains( String theIPaddress , int thePort ) {
+		for ( int i = 0 ; i < _myList.size( ) ; i++ ) {
+			NetAddress myHost = _myList.get( i );
+			if ( myHost.hostAddress.equals( theIPaddress ) && myHost.port == thePort ) {
+				return true;
+			}
+		}
+		return false;
+	}
 
-  /**
-   *
-   * @param theNetAddress NetAddress
-   */
-  public void remove(NetAddress theNetAddress) {
-    _myList.remove(theNetAddress);
-  }
+	public int size( ) {
+		return _myList.size( );
+	}
 
+	public void set( NetAddress ... theList ) {
+		_myList = new ArrayList< NetAddress >( Arrays.asList( theList ) );
+	}
 
-  public NetAddress get(String theIPaddress, int thePort) {
-    for (int i = 0; i < _myList.size(); i++) {
-      NetAddress myHost = ( (NetAddress) _myList.get(i));
-      if (myHost.hostAddress.equals(theIPaddress) && myHost.port == thePort) {
-        return myHost;
-      }
-    }
-    return null;
+	public List list( ) {
+		return _myList;
+	}
 
-  }
-
-
-  /**
-   *
-   * @param theNetAddress NetAddress
-   * @return boolean
-   */
-  public boolean contains(NetAddress theNetAddress) {
-       if (_myList.contains(theNetAddress)) {
-         return true;
-       }
-     return false;
-  }
-
-  /**
-   *
-   * @param theIPaddress String
-   * @param thePort int
-   * @return boolean
-   */
-  public boolean contains(String theIPaddress, int thePort) {
-    for (int i = 0; i < _myList.size(); i++) {
-      NetAddress myHost = ( (NetAddress) _myList.get(i));
-      if (myHost.hostAddress.equals(theIPaddress) && myHost.port == thePort) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-
-  public int size() {
-    return _myList.size();
-  }
-
-
-
-
-  /**
-   *
-   * @param theList NetAddress[]
-   */
-  public void set(NetAddress[] theList) {
-    _myList = new ArrayList();
-    for (int i = 0; i < theList.length; i++) {
-      _myList.add(theList[i]);
-    }
-  }
-
-
-
-  /**
-   *
-   * @return ArrayList
-   */
-  public ArrayList list() {
-    return _myList;
-  }
-
-
-
-  /**
-   *
-   * @param theIndex int
-   * @return NetAddress
-   */
-  public NetAddress get(int theIndex) {
-    return (NetAddress) _myList.get(theIndex);
-  }
+	public NetAddress get( int theIndex ) {
+		return _myList.get( theIndex );
+	}
 
 }
