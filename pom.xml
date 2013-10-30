@@ -40,7 +40,7 @@
     </developers>
 
     <build>
-        <sourceDirectory>${basedir}/oscP5/src</sourceDirectory>
+        <sourceDirectory>src</sourceDirectory>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>

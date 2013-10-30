@@ -25,11 +25,6 @@
 
 package oscP5;
 
-import static oscP5.OscP5.bytes;
-
-import java.net.DatagramPacket;
-import java.net.InetSocketAddress;
-import java.net.SocketAddress;
 import java.util.ArrayList;
 import java.util.Map;
 
@@ -48,73 +43,40 @@ public class OscBundle extends OscPacket {
 	private int _myMessageSize = 0;
 
 	public OscBundle( ) {
-
 		messages = new ArrayList< OscMessage >( );
-
 	}
 
 	OscBundle( Map m ) {
-		Object o = m.get( "socket-address" );
-		if ( ! ( o instanceof SocketAddress ) ) {
-			System.out.println( "OscBundle socket-address malformatted, expected SocketAddress but received " + o );
-		} else {
-			_myMessageSize = parseBundle( bytes( m.get( "data" ) ) , ( ( InetSocketAddress ) o ).getAddress( ) , ( ( InetSocketAddress ) o ).getPort( ) );
-		}
-	}
-
-	protected OscBundle( DatagramPacket theDatagramPacket ) {
-
-		inetAddress = theDatagramPacket.getAddress( );
-
-		port = theDatagramPacket.getPort( );
-
-		hostAddress = inetAddress.toString( );
-
-		_myMessageSize = parseBundle( theDatagramPacket.getData( ) , inetAddress , port );
-
-		_myType = BUNDLE;
-
+		_myMessageSize = parseBundle( m );
 	}
 
 	public void add( OscMessage ... theOscMessages ) {
-
 		for ( OscMessage m : theOscMessages ) {
 			messages.add( new OscMessage( m ) );
 			/* duplicate the OSC message ( sure this is a deep copy? ) */
 		}
-
 		_myMessageSize = messages.size( );
 
 	}
 
 	public void clear( ) {
-
 		messages = new ArrayList< OscMessage >( );
-
 	}
 
 	public void remove( int theIndex ) {
-
 		messages.remove( theIndex );
-
 	}
 
 	public void remove( OscMessage theOscMessage ) {
-
 		messages.remove( theOscMessage );
-
 	}
 
 	public OscMessage getMessage( int theIndex ) {
-
 		return messages.get( theIndex );
-
 	}
 
 	public int size( ) {
-
 		return _myMessageSize;
-
 	}
 
 	/**
@@ -125,45 +87,28 @@ public class OscBundle extends OscPacket {
 	 * 
 	 */
 	public void setTimetag( long theTime ) {
-
 		final long secsSince1900 = theTime / 1000 + TIMETAG_OFFSET;
-
 		final long secsFractional = ( ( theTime % 1000 ) << 32 ) / 1000;
-
 		timetag = ( secsSince1900 << 32 ) | secsFractional;
-
 	}
 
 	public static long now( ) {
-
 		return System.currentTimeMillis( );
-
 	}
 
 	public byte[] timetag( ) {
-
 		return Bytes.toBytes( timetag );
-
 	}
 
 	public byte[] getBytes( ) {
-
 		byte[] myBytes = new byte[ 0 ];
-
 		myBytes = Bytes.append( myBytes , BUNDLE_AS_BYTES );
-
 		myBytes = Bytes.append( myBytes , timetag( ) );
-
 		for ( int i = 0 ; i < size( ) ; i++ ) {
-
 			byte[] tBytes = getMessage( i ).getBytes( );
-
 			myBytes = Bytes.append( myBytes , Bytes.toBytes( tBytes.length ) );
-
 			myBytes = Bytes.append( myBytes , tBytes );
-
 		}
-
 		return myBytes;
 	}
 }

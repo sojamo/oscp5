@@ -25,7 +25,6 @@
 
 package oscP5;
 
-import java.net.InetSocketAddress;
 import java.util.Map;
 
 import netP5.Bytes;
@@ -43,30 +42,23 @@ public class OscMessage extends OscPacket {
 	protected boolean isPlugged = false;
 
 	OscMessage( Map m ) {
-
 		parseMessage( bytes( m.get( "data" ) ) );
-
-		InetSocketAddress socket = ( InetSocketAddress ) m.get( "socket-address" );
+		_myRef = m.get( "socket-ref" );
+		hostAddress = s( m.get( "socket-address" ) , null );
+		port = i( m.get( "socket-port" ) , 0 );
+		localPort = i( m.get( "local-port" ) , 0 );
 	}
 
 	public OscMessage( final OscMessage theOscMessage ) {
 
 		inetAddress = theOscMessage.inetAddress;
-
 		port = theOscMessage.port;
-
 		hostAddress = theOscMessage.hostAddress;
-
-		_myTcpClient = theOscMessage.tcpConnection( );
-
+		_myRef = theOscMessage.tcpConnection( );
 		_myAddrPattern = theOscMessage._myAddrPattern;
-
 		_myTypetag = theOscMessage._myTypetag;
-
 		_myData = theOscMessage._myData;
-
 		_myArguments = theOscMessage._myArguments;
-
 		isValid = true;
 	}
 
@@ -99,21 +91,15 @@ public class OscMessage extends OscPacket {
 	 * clear and reset an OscMessage for reuse.
 	 */
 	public void clear( ) {
-
 		init( );
-
 		setAddress( "" );
-
 		setArguments( new Object[ 0 ] );
 
 	}
 
 	public void clearArguments( ) {
-
 		_myTypetag = new byte[ 0 ];
-
 		_myData = new byte[ 0 ];
-
 		_myArguments = new Object[ 0 ];
 	}
 
@@ -133,7 +119,7 @@ public class OscMessage extends OscPacket {
 	}
 
 	public boolean checkTypetag( final String theTypeTag ) {
-		return theTypeTag.equals( typetag( ) );
+		return theTypeTag.equals( getTypetag( ) );
 	}
 
 	/**
@@ -143,7 +129,7 @@ public class OscMessage extends OscPacket {
 	 * 
 	 */
 	public boolean checkAddress( final String theAddrPattern ) {
-		return theAddrPattern.equals( addrPattern( ) );
+		return theAddrPattern.equals( getAddress( ) );
 	}
 
 	/**
@@ -168,23 +154,34 @@ public class OscMessage extends OscPacket {
 	 */
 	public void setArguments( final Object ... theArguments ) {
 		clearArguments( );
-		addArguments( theArguments );
+		add( theArguments );
+	}
+
+	public String getAddress( ) {
+		return Bytes.getAsString( _myAddrPattern );
 	}
 
 	/**
-	 * add a list of arguments to an exisiting set of arguments. to overwrite the existing argument
-	 * list, use setArguments(Object[])
+	 * returns the typetag of the osc message. e.g. the message contains 3 floats then the typetag
+	 * would be "fff"
 	 */
-	public OscMessage addArguments( final Object ... theArguments ) {
-		return add( theArguments );
+	public String getTypetag( ) {
+		return Bytes.getAsString( _myTypetag );
 	}
 
-	public String address( ) {
-		return Bytes.getAsString( _myAddrPattern );
+	public long getTimetag( ) {
+		return timetag;
 	}
 
-	public String addrPattern( ) {
-		return Bytes.getAsString( _myAddrPattern );
+	public Object[] getArguments( ) {
+		return _myArguments;
+	}
+
+	public Object getArgument( int theIndex ) {
+		if ( theIndex >= 0 && theIndex < _myArguments.length ) {
+			return _myArguments[ theIndex ];
+		}
+		return new Object( );
 	}
 
 	/**
@@ -192,24 +189,6 @@ public class OscMessage extends OscPacket {
 	 */
 	public int addrInt( ) {
 		return _myAddrInt;
-	}
-
-	/**
-	 * returns the typetag of the osc message. e.g. the message contains 3 floats then the typetag
-	 * would be "fff"
-	 * 
-	 * @return String
-	 */
-	public String typetag( ) {
-		return Bytes.getAsString( _myTypetag );
-	}
-
-	public long timetag( ) {
-		return timetag;
-	}
-
-	public Object[] arguments( ) {
-		return _myArguments;
 	}
 
 	protected Object[] argsAsArray( ) {
@@ -399,6 +378,10 @@ public class OscMessage extends OscPacket {
 		return this;
 	}
 
+	/**
+	 * add a list of arguments to an exisiting set of arguments. to overwrite the existing argument
+	 * list, use setArguments(Object[])
+	 */
 	public OscMessage add( final Object ... os ) {
 		for ( Object o : os ) {
 			if ( !add( o ) ) {
@@ -469,20 +452,16 @@ public class OscMessage extends OscPacket {
 	 * returns an OscArgument from which the value can be parsed into the right format. e.g. to
 	 * parse an int from the first argument in the osc message, use theOscMessage.get(0).intValue();
 	 * 
-	 * @param theIndex
-	 *            int
+	 * @param theIndex int
 	 * @return OscArgument
 	 */
 	public OscArgument get( final int theIndex ) {
-		if ( theIndex < arguments( ).length ) {
-			_myOscArgument.value = arguments( )[ theIndex ];
-			return _myOscArgument;
-		}
-		return null;
+		_myOscArgument.setValue( getArgument( theIndex ) );
+		return _myOscArgument;
 	}
 
 	public final String toString( ) {
-		return hostAddress + ":" + port + " | " + addrPattern( ) + " " + typetag( );
+		return hostAddress + ":" + port + " | " + getAddress( ) + " " + getTypetag( );
 	}
 
 	public boolean isPlugged( ) {
@@ -510,7 +489,7 @@ public class OscMessage extends OscPacket {
 		return f( getValue( theIndex ) );
 	}
 
-	public int charValue( int theIndex ) {
+	public char charValue( int theIndex ) {
 		return c( getValue( theIndex ) );
 	}
 
@@ -530,6 +509,69 @@ public class OscMessage extends OscPacket {
 		return s( getValue( theIndex ) );
 	}
 
+	public String[] stringValues( int theStart , int theEnd ) {
+		int n = theEnd - theStart;
+		String[] arr = new String[ n ];
+		for ( int i = 0 ; i < n ; i++ ) {
+			arr[ i ] = stringValue( theStart + i );
+		}
+		return arr;
+	}
+
+	public int[] intValues( int theStart , int theEnd ) {
+		int n = theEnd - theStart;
+		int[] arr = new int[ n ];
+		for ( int i = 0 ; i < n ; i++ ) {
+			arr[ i ] = intValue( theStart + i );
+		}
+		return arr;
+	}
+
+	public float[] floatValues( int theStart , int theEnd ) {
+		int n = theEnd - theStart;
+		float[] arr = new float[ n ];
+		for ( int i = 0 ; i < n ; i++ ) {
+			arr[ i ] = intValue( theStart + i );
+		}
+		return arr;
+	}
+
+	public char[] charValues( int theStart , int theEnd ) {
+		int n = theEnd - theStart;
+		char[] arr = new char[ n ];
+		for ( int i = 0 ; i < n ; i++ ) {
+			arr[ i ] = charValue( theStart + i );
+		}
+		return arr;
+	}
+
+	public double[] doubleValues( int theStart , int theEnd ) {
+		int n = theEnd - theStart;
+		double[] arr = new double[ n ];
+		for ( int i = 0 ; i < n ; i++ ) {
+			arr[ i ] = doubleValue( theStart + i );
+		}
+		return arr;
+	}
+
+	public long[] longValues( int theStart , int theEnd ) {
+		int n = theEnd - theStart;
+		long[] arr = new long[ n ];
+		for ( int i = 0 ; i < n ; i++ ) {
+			arr[ i ] = longValue( theStart + i );
+		}
+		return arr;
+	}
+
+	public boolean[] booleanValues( int theStart , int theEnd ) {
+		int n = theEnd - theStart;
+		boolean[] arr = new boolean[ n ];
+		for ( int i = 0 ; i < n ; i++ ) {
+			arr[ i ] = booleanValue( theStart + i );
+		}
+		return arr;
+	}
+
 	public byte[] bytesValue( int theIndex ) {
 		return bytes( getValue( theIndex ) );
 	}
@@ -538,49 +580,19 @@ public class OscMessage extends OscPacket {
 		return bytesValue( theIndex );
 	}
 
-	private Object getValue( int theIndex ) {
-		if ( theIndex < arguments( ).length ) {
-			return arguments( )[ theIndex ];
+	public Object getValue( int theIndex ) {
+		if ( theIndex < getArguments( ).length ) {
+			return getArguments( )[ theIndex ];
 		}
 		indexOutOfBounds( theIndex );
 		return null;
 	}
 
 	public void indexOutOfBounds( int n ) {
-		System.err.println( "ArrayIndexOutOfBounds: index requested " + n + ", expected < " + arguments( ).length );
+		System.err.println( "ArrayIndexOutOfBounds: index requested " + n + ", expected < " + getArguments( ).length );
 	}
 
-	static public int i( Object o ) {
-		return ( o instanceof Number ) ? ( ( Number ) o ).intValue( ) : Integer.MIN_VALUE;
-	}
-
-	static public int c( Object o ) {
-		return ( o instanceof Character ) ? ( ( Character ) o ).charValue( ) : '\0';
-	}
-
-	static public double d( Object o ) {
-		return ( o instanceof Number ) ? ( ( Number ) o ).doubleValue( ) : Double.MIN_VALUE;
-	}
-
-	static public long l( Object o ) {
-		return ( o instanceof Number ) ? ( ( Number ) o ).longValue( ) : Long.MIN_VALUE;
-	}
-
-	static public float f( Object o ) {
-		return ( o instanceof Number ) ? ( ( Number ) o ).floatValue( ) : Float.MIN_VALUE;
-	}
-
-	static public boolean b( Object o ) {
-		return ( o instanceof Boolean ) ? ( ( Boolean ) o ).booleanValue( ) : ( o instanceof Number ) ? ( ( Number ) o ).intValue( ) == 0 ? false : true : false;
-	}
-
-	static public byte[] bytes( Object o ) {
-		return ( o instanceof byte[] ) ? ( byte[] ) o : new byte[ 0 ];
-	}
-
-	static public String s( Object o ) {
-		return o.toString( );
-	}
+	/* Deprecated methods */
 
 	@Deprecated
 	public void setAddrPattern( final String theAddrPattern ) {
@@ -595,6 +607,31 @@ public class OscMessage extends OscPacket {
 	@Deprecated
 	public boolean checkAddrPattern( final String theAddrPattern ) {
 		return theAddrPattern.equals( addrPattern( ) );
+	}
+
+	@Deprecated
+	public String typetag( ) {
+		return Bytes.getAsString( _myTypetag );
+	}
+
+	@Deprecated
+	public long timetag( ) {
+		return timetag;
+	}
+
+	@Deprecated
+	public Object[] arguments( ) {
+		return _myArguments;
+	}
+
+	@Deprecated
+	public OscMessage addArguments( final Object ... theArguments ) {
+		return add( theArguments );
+	}
+
+	@Deprecated
+	public String addrPattern( ) {
+		return Bytes.getAsString( _myAddrPattern );
 	}
 
 }

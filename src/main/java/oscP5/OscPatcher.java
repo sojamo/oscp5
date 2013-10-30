@@ -25,8 +25,6 @@
 
 package oscP5;
 
-import java.net.InetAddress;
-import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -64,56 +62,41 @@ public abstract class OscPatcher {
 
 	protected byte _myArrayType = 0X00;
 
-	protected OscPatcher( ) {
-	}
-
-	protected int parseBundle( final byte[] theBytes , final InetAddress theAddress , final int thePort ) {
-
-		if ( theBytes.length > OscBundle.BUNDLE_HEADER_SIZE ) {
-
-			timetag = ( new Long( Bytes.toLong( Bytes.copy( theBytes , 8 , 8 ) ) ) ).longValue( );
-
+	protected int parseBundle( Map m ) {
+		byte[] bytes = bytes( m.get( "data" ) );
+		if ( bytes.length > OscBundle.BUNDLE_HEADER_SIZE ) {
+			timetag = ( new Long( Bytes.toLong( Bytes.copy( bytes , 8 , 8 ) ) ) ).longValue( );
 			int myPosition = OscBundle.BUNDLE_HEADER_SIZE;
-
 			messages = new ArrayList< OscMessage >( );
-
-			int myMessageLength = Bytes.toInt( Bytes.copy( theBytes , myPosition , 4 ) );
-
-			while ( myMessageLength != 0 && ( myMessageLength % 4 == 0 ) && myPosition < theBytes.length ) {
-
+			int myMessageLength = Bytes.toInt( Bytes.copy( bytes , myPosition , 4 ) );
+			while ( myMessageLength != 0 && ( myMessageLength % 4 == 0 ) && myPosition < bytes.length ) {
 				myPosition += 4;
-
-				Map< String , Object > m = new HashMap< String , Object >( );
-
-				m.put( "data" , Bytes.copy( theBytes , myPosition , myMessageLength ) );
-
-				m.put( "socket-address" , new InetSocketAddress( theAddress , thePort ) );
+				Map< String , Object > m0 = new HashMap< String , Object >( );
+				m0.put( "data" , Bytes.copy( bytes , myPosition , myMessageLength ) );
+				m0.put( "socket-ref" , m.get( "socket-ref" ) );
+				m0.put( "socket-address" , m.get( "socket-address" ) );
+				m0.put( "socket-port" , m.get( "socket-port" ) );
+				m0.put( "local-port" , m.get( "local-port" ) );
 
 				messages.add( new OscMessage( m ) );
-
 				myPosition += myMessageLength;
-
-				if ( myPosition >= theBytes.length ) {
+				if ( myPosition >= bytes.length ) {
 					break;
 				}
-
-				myMessageLength = Bytes.toInt( Bytes.copy( theBytes , myPosition , 4 ) );
+				myMessageLength = Bytes.toInt( Bytes.copy( bytes , myPosition , 4 ) );
 			}
-
 		}
 
-		List f = new ArrayList( );
+		List< OscMessage > f = new ArrayList< OscMessage >( );
 
-		for ( OscMessage m : messages ) {
-			if ( !m.isValid ) {
-				f.add( m );
+		for ( OscMessage msg : messages ) {
+			if ( !msg.isValid ) {
+				f.add( msg );
 			}
 		}
 
 		messages.removeAll( f );
-
 		isValid = ( messages.size( ) > 0 ) ? true : false;
-
 		return messages.size( );
 
 	}
@@ -121,25 +104,16 @@ public abstract class OscPatcher {
 	protected void parseMessage( final byte[] theBytes ) {
 
 		int myLength = theBytes.length;
-
 		int myIndex = 0;
-
 		myIndex = parseAddrPattern( theBytes , myLength , myIndex );
-
 		if ( myIndex != -1 ) {
-
 			myIndex = parseTypetag( theBytes , myLength , myIndex );
-
 		}
 
 		if ( myIndex != -1 ) {
-
 			_myData = Bytes.copy( theBytes , myIndex );
-
 			_myArguments = parseArguments( _myData );
-
 			isValid = true;
-
 		}
 
 	}
@@ -177,13 +151,17 @@ public abstract class OscPatcher {
 	 * @return
 	 */
 	protected Object[] parseArguments( final byte[] theBytes ) {
+
 		Object[] myArguments = new Object[ 0 ];
 		int myTagIndex = 0;
 		int myIndex = 0;
 		myArguments = new Object[ _myTypetag.length ];
 		isArray = ( _myTypetag.length > 0 ) ? true : false;
+
 		while ( myTagIndex < _myTypetag.length ) {
+
 			/* check if we still save the arguments as an array */
+
 			if ( myTagIndex == 0 ) {
 				_myArrayType = _myTypetag[ myTagIndex ];
 			} else {
@@ -241,16 +219,67 @@ public abstract class OscPatcher {
 				myArguments[ myTagIndex ] = Bytes.copy( theBytes , myIndex , 4 );
 				myIndex += 4;
 				break;
+			case 'T':
+				myArguments[ myTagIndex ] = true;
+				break;
+			case 'F':
+				myArguments[ myTagIndex ] = false;
+				break;
 			/* no arguments for typetags T,F,N T = true F = false N = false */
 			}
 			myTagIndex++;
 		}
+
 		_myData = Bytes.copy( _myData , 0 , myIndex );
+
 		return myArguments;
 	}
 
 	protected static int align( int theInt ) {
 		return ( 4 - ( theInt % 4 ) );
+	}
+
+	static public int i( Object o ) {
+		return ( o instanceof Number ) ? ( ( Number ) o ).intValue( ) : Integer.MIN_VALUE;
+	}
+
+	static public int i( Object o , int theDefault ) {
+		return ( o instanceof Number ) ? ( ( Number ) o ).intValue( ) : theDefault;
+	}
+
+	static public char c( Object o ) {
+		return ( o instanceof Character ) ? ( ( Character ) o ).charValue( ) : '\0';
+	}
+
+	static public double d( Object o ) {
+		return ( o instanceof Number ) ? ( ( Number ) o ).doubleValue( ) : Double.MIN_VALUE;
+	}
+
+	static public long l( Object o ) {
+		return ( o instanceof Number ) ? ( ( Number ) o ).longValue( ) : Long.MIN_VALUE;
+	}
+
+	static public float f( Object o ) {
+		return ( o instanceof Number ) ? ( ( Number ) o ).floatValue( ) : Float.MIN_VALUE;
+	}
+
+	static public boolean b( Object o ) {
+		return ( o instanceof Boolean ) ? ( ( Boolean ) o ).booleanValue( ) : ( o instanceof Number ) ? ( ( Number ) o ).intValue( ) == 0 ? false : true : false;
+	}
+
+	static public byte[] bytes( Object o ) {
+		return ( o instanceof byte[] ) ? ( byte[] ) o : new byte[ 0 ];
+	}
+
+	static public String s( Object o ) {
+		return o.toString( );
+	}
+
+	static public String s( Object o , String theDefault ) {
+		if ( o != null ) {
+			return o.toString( );
+		}
+		return theDefault;
 	}
 
 }

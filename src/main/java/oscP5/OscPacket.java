@@ -25,21 +25,20 @@
 
 package oscP5;
 
-import static oscP5.OscP5.bytes;
-
 import java.net.InetAddress;
+import java.nio.channels.SocketChannel;
 import java.util.Map;
 
 import netP5.Bytes;
 import netP5.NetAddress;
-import netP5.TcpClient;
-
 
 public abstract class OscPacket extends OscPatcher {
 
-	protected static final int MESSAGE = 0;
+	protected static final int SYSTEM = 1;
 
-	protected static final int BUNDLE = 1;
+	protected static final int MESSAGE = 2;
+
+	protected static final int BUNDLE = 3;
 
 	protected InetAddress inetAddress;
 
@@ -47,39 +46,46 @@ public abstract class OscPacket extends OscPatcher {
 
 	protected int _myType;
 
-	protected TcpClient _myTcpClient = null;
+	protected Object _myRef = null;
 
-	protected int port;
+	protected int port = 0;
+
+	protected int localPort = 0;
 
 	static protected OscPacket parse( Map m ) {
 
 		int n = evaluatePacket( bytes( m.get( "data" ) ) );
 
 		if ( n == MESSAGE ) {
-
 			return new OscMessage( m );
-
 		} else if ( n == BUNDLE ) {
-
 			return new OscBundle( m );
-
+		} else if ( n == SYSTEM ) {
+			/* TODO applies to tcp client operations for a tcp server including connect, disconnect,
+			 * etc. for now will be ignored. */
+			return null;
 		}
-
 		return new OscMessage( "error" );
 
 	}
 
 	private static int evaluatePacket( byte[] theBytes ) {
-		return ( Bytes.areEqual( OscBundle.BUNDLE_AS_BYTES , Bytes.copy( theBytes , 0 , OscBundle.BUNDLE_AS_BYTES.length ) ) ) ? BUNDLE : MESSAGE;
-
+		return ( ( theBytes.length > 0 ) ? ( Bytes.areEqual( OscBundle.BUNDLE_AS_BYTES , Bytes.copy( theBytes , 0 , OscBundle.BUNDLE_AS_BYTES.length ) ) ? BUNDLE : MESSAGE ) : SYSTEM );
 	}
 
 	/**
 	 * when in TCP mode, tcpConnection() returns the instance of the TcpClient that has sent the
 	 * OscMessage.
 	 */
-	public TcpClient tcpConnection( ) {
-		return _myTcpClient;
+	public SocketChannel tcpConnection( ) {
+		if ( _myRef instanceof SocketChannel ) {
+			return ( SocketChannel ) _myRef;
+		}
+		return null;
+	}
+
+	public Object remoteChannel( ) {
+		return _myRef;
 	}
 
 	protected boolean isValid( ) {
@@ -98,7 +104,7 @@ public abstract class OscPacket extends OscPatcher {
 		return new NetAddress( inetAddress , port );
 	}
 
-	public String address( ) {
+	public String getAddress( ) {
 		return hostAddress;
 	}
 

@@ -29,8 +29,15 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.net.InetAddress;
 import java.net.MalformedURLException;
+import java.net.NetworkInterface;
+import java.net.SocketException;
 import java.net.URL;
+import java.util.Collections;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.StringTokenizer;
 import java.util.logging.Logger;
 
@@ -113,6 +120,39 @@ public class NetInfo {
 			}
 		}
 		return myIp;
+	}
+
+	/**
+	 * 
+	 * returns a map of available network interfaces. this map's keys use the network interface's
+	 * name as identifier. Each value is a map with the following keys: name (eg en0, eth0, lo0),
+	 * display-name (en0, Wireless Network Connection, Loopback), mac (the device's MAC address as
+	 * byte-array), inet-address (java.net.InetAddress see javadoc)and network-interface (the raw
+	 * java.net.NetworkInterface object, see javadoc).
+	 */
+	static public Map< String , Map > getNetworkInterfaces( ) {
+		Map< String , Map > m = new HashMap< String , Map >( );
+		Enumeration< NetworkInterface > nets;
+		try {
+			nets = NetworkInterface.getNetworkInterfaces( );
+			for ( NetworkInterface netint : Collections.list( nets ) ) {
+				Map< String , Object > m1 = new HashMap< String , Object >( );
+				m.put( netint.getDisplayName( ) , m1 );
+				m1.put( "name" , netint.getName( ) );
+				m1.put( "display-name" , netint.getDisplayName( ) );
+				m1.put( "mac" , netint.getHardwareAddress( ) );
+				m1.put( "network-interface" , netint );
+				Enumeration< InetAddress > inetAddresses = netint.getInetAddresses( );
+				for ( InetAddress inetAddress : Collections.list( inetAddresses ) ) {
+					m1.put( "inet-address" , inetAddress );
+				}
+
+			}
+		} catch ( SocketException e ) {
+			e.printStackTrace( );
+		}
+
+		return m;
 	}
 
 	public static void main( String[] args ) {

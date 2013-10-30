@@ -25,9 +25,9 @@
 
 package oscP5;
 
-public class OscArgument {
+public final class OscArgument {
 
-	protected Object value;
+	private Object value;
 
 	OscArgument( ) {
 	}
@@ -79,5 +79,9 @@ public class OscArgument {
 			myInt[ i ] = ( int ) ( myByte[ i ] );
 		}
 		return ( myInt );
+	}
+
+	void setValue( Object theValue ) {
+		value = theValue;
 	}
 }

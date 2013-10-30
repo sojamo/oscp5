@@ -39,27 +39,29 @@ import netP5.NetAddress;
  */
 public class OscProperties {
 
-	public static final boolean ON = true;
+	static public final boolean ON = true;
 
-	public static final boolean OFF = false;
+	static public final boolean OFF = false;
 
-	public static final int UDP = 0;
+	static public final int UDP = 0;
 
-	public static final int MULTICAST = 1;
+	static public final int MULTICAST = 1;
 
-	public static final int TCP = 2;
+	static public final int TCP = 2;
 
-	protected boolean isLocked = false;
+	private boolean isLocked = false;
 
-	protected final List< OscEventListener > listeners;
+	private final List< OscEventListener > listeners = new Vector< OscEventListener >( );
 
-	private NetAddress _myRemoteAddress = new NetAddress( "" , 0 );
+	static public final NetAddress defaultnetaddress = new NetAddress( "" , 0 );
 
-	private int _myListeningPort = 0;
+	private NetAddress _myRemoteAddress = defaultnetaddress;
 
-	private int _myDatagramSize = 1536; // common MTU
+	private int _myListeningPort = 0; /* default listening port */
 
-	protected String _myDefaultEventMethodName = "oscEvent";
+	private int _myDatagramSize = 1536; /* default datagram buffer size */
+
+	private String _myDefaultEventMethodName = "oscEvent";
 
 	private int _myNetworkProtocol = UDP;
 
@@ -67,13 +69,19 @@ public class OscProperties {
 
 	private boolean _mySRSP = OFF; // (S)end (R)eceive (S)ame (P)ort
 
-	public OscProperties( OscEventListener theParent ) {
-		this( );
-		listeners.add( theParent );
+	public OscProperties( ) {
 	}
 
-	public OscProperties( ) {
-		listeners = new Vector< OscEventListener >( );
+	public OscProperties( final NetAddress theNetAddress ) {
+		_myRemoteAddress = theNetAddress;
+	}
+
+	public OscProperties( int theReceiveAtPort ) {
+		_myListeningPort = theReceiveAtPort;
+	}
+
+	public OscProperties( OscEventListener theParent ) {
+		listeners.add( theParent );
 	}
 
 	public List< OscEventListener > listeners( ) {
@@ -83,19 +91,14 @@ public class OscProperties {
 	public boolean sendStatus( ) {
 		return _mySendStatus;
 	}
-
+	
 	public void setRemoteAddress( final String theHostAddress , final int thePort ) {
-
 		setRemoteAddress( new NetAddress( theHostAddress , thePort ) );
-
 	}
 
 	public void setRemoteAddress( NetAddress theNetAddress ) {
-
 		_myRemoteAddress = theNetAddress;
-
 		_mySendStatus = _myRemoteAddress.isvalid( );
-
 	}
 
 	public void setListeningPort( final int thePort ) {
@@ -103,15 +106,10 @@ public class OscProperties {
 	}
 
 	public void setDatagramSize( final int theSize ) {
-
 		if ( !isLocked ) {
-
 			_myDatagramSize = theSize;
-
 		} else {
-
 			OscP5.LOGGER.warning( "datagram size can only be set before initializing oscP5\ncurrent datagram size is " + _myDatagramSize + ", use OscProperties.setDatagramSize( int )." );
-
 		}
 	}
 

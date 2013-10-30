@@ -43,6 +43,10 @@ public class NetAddress {
 	private NetAddress( ) {
 	}
 
+	public NetAddress( final int thePort ) {
+		this( "127.0.0.1" , thePort );
+	}
+
 	public NetAddress( final String theAddress , final int thePort ) {
 		hostAddress = theAddress;
 		port = thePort;

@@ -31,6 +31,10 @@ import java.lang.reflect.Method;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.SocketException;
+import java.nio.ByteBuffer;
+import java.nio.channels.DatagramChannel;
+import java.nio.channels.NotYetConnectedException;
+import java.nio.channels.SocketChannel;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -42,8 +46,11 @@ import java.util.logging.Logger;
 import netP5.NetAddress;
 import netP5.NetAddressList;
 import netP5.NetInfo;
-import netP5.Sender;
+import netP5.NetP5;
 import netP5.TcpClient;
+import netP5.TcpServer;
+import netP5.Transmitter;
+import netP5.UdpClient;
 import netP5.UdpServer;
 
 /**
@@ -63,19 +70,7 @@ import netP5.UdpServer;
  */
 public class OscP5 implements Observer {
 
-	/* @TODO implement polling option to avoid threading and synchronization issues. check email
-	 * from tom lieber. look into mutex objects.
-	 * http://www.google.com/search?hl=en&q=mutex+java&btnG=Search */
-
-	// protected ArrayList _myOscPlugList = new ArrayList();
-
 	final static Logger LOGGER = Logger.getLogger( OscP5.class.getName( ) );
-
-	/* how to disable the logger
-	 * 
-	 * Logger l0 = Logger.getLogger(""); // get the global logger
-	 * 
-	 * l0.removeHandler(l0.getHandlers()[0]); // remove handler */
 
 	protected Map< String , List< OscPlug >> _myOscPlugMap = new HashMap< String , List< OscPlug >>( );
 
@@ -83,22 +78,14 @@ public class OscP5 implements Observer {
 
 	public final static boolean OFF = OscProperties.OFF;
 
-	/**
-	 * a static variable used when creating an oscP5 instance with a sepcified network protocol.
-	 */
+	/* a static variable used when creating an oscP5 instance with a specified network protocol. */
 	public final static int UDP = OscProperties.UDP;
 
-	/**
-	 * a static variable used when creating an oscP5 instance with a sepcified network protocol.
-	 */
+	/* a static variable used when creating an oscP5 instance with a specified network protocol. */
 	public final static int MULTICAST = OscProperties.MULTICAST;
 
-	/**
-	 * a static variable used when creating an oscP5 instance with a sepcified network protocol.
-	 */
+	/* a static variable used when creating an oscP5 instance with a specified network protocol. */
 	public final static int TCP = OscProperties.TCP;
-
-	protected final Object parent;
 
 	private OscProperties _myOscProperties;
 
@@ -110,45 +97,87 @@ public class OscP5 implements Observer {
 
 	private boolean isBroadcast = false;
 
-	public static final String VERSION = "2.0.0";
+	public static final String VERSION = "2.0.1";
 
 	static private int welcome = 0;
 
-	Sender sender;
+	private Transmitter transmit;
+
+	private Object parent;
 
 	/**
-	 * start an OSC transceiver using the UDP transport protocol
+	 * default constructor, starts an UDP server with maximum packet size of 1536 bytes.
 	 */
+	public OscP5( final Object theParent , final int theListeningPort ) {
+		OscProperties properties = new OscProperties( theListeningPort );
+		init( theParent , properties );
+	}
 
-	public OscP5( final Object theParent , final int theReceiveAtPort ) {
+	/**
+	 * Constructor for a server using theProtocol.
+	 */
+	public OscP5( final Object theParent , final int theListeningPort , final int theProtocol ) {
+		OscProperties properties = new OscProperties( theListeningPort );
+		properties.setNetworkProtocol( theProtocol );
+		init( theParent , properties );
+	}
 
-		this( theParent , new OscProperties( ) );
-
-		UdpServer server = new UdpServer( theReceiveAtPort , 1536 );
-
-		server.addObserver( this );
-
-		sender = server;
-
+	/**
+	 * Constructor for a client using theProtocol.
+	 */
+	public OscP5( final Object theParent , String theRemoteAddress , final int theRemotePort , final int theProtocol ) {
+		OscProperties properties = new OscProperties( new NetAddress( theRemoteAddress , theRemotePort ) );
+		properties.setNetworkProtocol( theProtocol );
+		init( theParent , properties );
 	}
 
 	public OscP5( final Object theParent , final OscProperties theProperties ) {
+		init( theParent , theProperties );
+	}
+
+	private void init( Object theParent , OscProperties theProperties ) {
 
 		welcome( );
-
-		parent = theParent;
-
+		parent = ( theParent == null ) ? new Object( ) : theParent;
 		registerDispose( parent );
-
 		_myOscProperties = theProperties;
-
 		isEventMethod = checkEventMethod( );
+
+		switch ( _myOscProperties.networkProtocol( ) ) {
+		case ( OscProperties.UDP ):
+			if ( !_myOscProperties.remoteAddress( ).equals( OscProperties.defaultnetaddress ) ) {
+				UdpClient udpclient = NetP5.createUdpClient( _myOscProperties.remoteAddress( ).address( ) , _myOscProperties.remoteAddress( ).port( ) );
+				transmit = udpclient;
+			} else {
+				UdpServer udpserver = NetP5.createUdpServer( _myOscProperties.listeningPort( ) , _myOscProperties.datagramSize( ) );
+				udpserver.addObserver( this );
+				transmit = udpserver;
+			}
+			break;
+		case ( OscProperties.TCP ):
+			if ( !_myOscProperties.remoteAddress( ).equals( OscProperties.defaultnetaddress ) ) {
+				TcpClient tcpclient = NetP5.createTcpClient( _myOscProperties.remoteAddress( ).address( ) , _myOscProperties.remoteAddress( ).port( ) );
+				tcpclient.addObserver( this );
+				transmit = tcpclient;
+			} else {
+				TcpServer tcpserver = NetP5.createTcpServer( _myOscProperties.listeningPort( ) );
+				tcpserver.addObserver( this );
+				transmit = tcpserver;
+			}
+			break;
+		case ( OscProperties.MULTICAST ):
+			LOGGER.info( "Multicast is not yet implemented with this version. " );
+			break;
+		default:
+			LOGGER.info( "Unknown protocol." );
+			break;
+		}
 
 	}
 
-	public void update( Observable ob , Object o ) {
-		/* gets notified by servers and clients, a Map is expected as 2nd argument. */
-		process( o );
+	public void update( Observable ob , Object map ) {
+		/* gets called when an OSC packet was received, a Map is expected as second argument. */
+		process( map );
 	}
 
 	private void welcome( ) {
@@ -162,6 +191,7 @@ public class OscP5 implements Observer {
 	}
 
 	public void dispose( ) {
+		transmit.close( );
 		stop( );
 	}
 
@@ -171,21 +201,15 @@ public class OscP5 implements Observer {
 	}
 
 	public void addListener( OscEventListener theListener ) {
-
 		_myOscProperties.listeners( ).add( theListener );
-
 	}
 
 	public void removeListener( OscEventListener theListener ) {
-
 		_myOscProperties.listeners( ).remove( theListener );
-
 	}
 
 	public List< OscEventListener > listeners( ) {
-
 		return _myOscProperties.listeners( );
-
 	}
 
 	/**
@@ -194,38 +218,36 @@ public class OscP5 implements Observer {
 	 */
 	private void registerDispose( Object theObject ) {
 		try {
+
 			Object parent = null;
 			String child = "processing.core.PApplet";
+
 			try {
 
 				Class< ? > childClass = Class.forName( child );
-
 				Class< ? > parentClass = Object.class;
-
 				if ( parentClass.isAssignableFrom( childClass ) ) {
-
 					parent = childClass.newInstance( );
-
 					parent = theObject;
-
 				}
 			} catch ( Exception e ) {
-
+				e.printStackTrace( );
 			}
+
 			try {
-				Method method = parent.getClass( ).getMethod( "register" , String.class , Object.class );
+				Method method = parent.getClass( ).getMethod( "registerMethod" , String.class , Object.class );
 				try {
-
 					method.invoke( parent , new Object[] { "dispose" , this } );
-
 				} catch ( Exception e ) {
-
+					e.printStackTrace( );
 				}
-			} catch ( Exception e ) {
 
+			} catch ( NoSuchMethodException e ) {
+				// e.printStackTrace( );
 			}
-		} catch ( NullPointerException e ) {
 
+		} catch ( NullPointerException e ) {
+			e.printStackTrace( );
 		}
 	}
 
@@ -238,17 +260,11 @@ public class OscP5 implements Observer {
 			Method[] myMethods = _myParentClass.getDeclaredMethods( );
 
 			for ( int i = 0 ; i < myMethods.length ; i++ ) {
-
 				if ( myMethods[ i ].getName( ).indexOf( _myOscProperties.eventMethod( ) ) != -1 ) {
-
 					Class< ? >[] myClasses = myMethods[ i ].getParameterTypes( );
-
 					if ( myClasses.length == 1 ) {
-
 						_myEventClass = myClasses[ 0 ];
-
 						break;
-
 					}
 				}
 			}
@@ -264,54 +280,33 @@ public class OscP5 implements Observer {
 			try {
 
 				Class< ? >[] tClass = { _myEventClass };
-
 				_myEventMethod = _myParentClass.getDeclaredMethod( tMethod , tClass );
-
 				_myEventMethod.setAccessible( true );
-
 				return true;
 
 			} catch ( SecurityException e1 ) {
-
 				LOGGER.warning( "### security issues in OscP5.checkEventMethod(). (this occures when running in applet mode)" );
-
 			} catch ( NoSuchMethodException e1 ) {
-
 			}
 		}
 
 		if ( _myEventMethod != null ) {
-
 			return true;
-
 		}
-
 		return false;
 	}
 
-	/* old */
-
 	public static void flush( final NetAddress theNetAddress , final byte[] theBytes ) {
-
 		DatagramSocket mySocket;
-
 		try {
 			mySocket = new DatagramSocket( );
-
 			DatagramPacket myPacket = new DatagramPacket( theBytes , theBytes.length , theNetAddress.inetaddress( ) , theNetAddress.port( ) );
-
 			mySocket.send( myPacket );
-
 		} catch ( SocketException e ) {
-
 			LOGGER.warning( "OscP5.openSocket, can't create socket " + e.getMessage( ) );
-
 		} catch ( IOException e ) {
-
 			LOGGER.warning( "OscP5.openSocket, can't create multicastSocket " + e.getMessage( ) );
-
 		}
-
 	}
 
 	/**
@@ -324,27 +319,23 @@ public class OscP5 implements Observer {
 	public void plug( final Object theObject , final String theMethodName , final String theAddrPattern , final String theTypeTag ) {
 
 		final OscPlug myOscPlug = new OscPlug( );
-
 		myOscPlug.plug( theObject , theMethodName , theAddrPattern , theTypeTag );
 
 		if ( _myOscPlugMap.containsKey( theAddrPattern ) ) {
-
 			_myOscPlugMap.get( theAddrPattern ).add( myOscPlug );
-
 		} else {
-
 			List< OscPlug > myOscPlugList = new ArrayList< OscPlug >( );
-
 			myOscPlugList.add( myOscPlug );
-
 			_myOscPlugMap.put( theAddrPattern , myOscPlugList );
 		}
 	}
 
 	public void plug( final Object theObject , final String theMethodName , final String theAddrPattern ) {
+
 		final Class< ? > myClass = theObject.getClass( );
 		final Method[] myMethods = myClass.getDeclaredMethods( );
 		Class< ? >[] myParams = null;
+
 		for ( int i = 0 ; i < myMethods.length ; i++ ) {
 			String myTypetag = "";
 			try {
@@ -354,12 +345,14 @@ public class OscP5 implements Observer {
 			if ( ( myMethods[ i ].getName( ) ).equals( theMethodName ) ) {
 				myParams = myMethods[ i ].getParameterTypes( );
 				OscPlug myOscPlug = new OscPlug( );
-				for ( int j = 0 ; j < myParams.length ; j++ ) {
-					myTypetag += myOscPlug.checkType( myParams[ j ].getName( ) );
+				for ( Class< ? > c : myParams ) {
+					myTypetag += myOscPlug.checkType( c.getName( ) );
 				}
 
 				myOscPlug.plug( theObject , theMethodName , theAddrPattern , myTypetag );
+
 				// _myOscPlugList.add(myOscPlug);
+
 				if ( _myOscPlugMap.containsKey( theAddrPattern ) ) {
 					_myOscPlugMap.get( theAddrPattern ).add( myOscPlug );
 				} else {
@@ -367,53 +360,38 @@ public class OscP5 implements Observer {
 					myOscPlugList.add( myOscPlug );
 					_myOscPlugMap.put( theAddrPattern , myOscPlugList );
 				}
-
 			}
 		}
 	}
 
 	private void callMethod( final OscMessage theOscMessage ) {
 
-		// forward the message to all OscEventListeners
+		/* forward the received message to all OscEventListeners */
 
 		for ( int i = listeners( ).size( ) - 1 ; i >= 0 ; i-- ) {
-
 			( ( OscEventListener ) listeners( ).get( i ) ).oscEvent( theOscMessage );
-
 		}
 
 		/* check if the arguments can be forwarded as array */
 
 		if ( theOscMessage.isArray ) {
-
-			if ( _myOscPlugMap.containsKey( theOscMessage.addrPattern( ) ) ) {
-
-				List< OscPlug > myOscPlugList = _myOscPlugMap.get( theOscMessage.addrPattern( ) );
-
+			if ( _myOscPlugMap.containsKey( theOscMessage.getAddress( ) ) ) {
+				List< OscPlug > myOscPlugList = _myOscPlugMap.get( theOscMessage.getAddress( ) );
 				for ( OscPlug plug : myOscPlugList ) {
-
 					if ( plug.isArray && plug.checkMethod( theOscMessage , true ) ) {
-
 						invoke( plug.getObject( ) , plug.getMethod( ) , theOscMessage.argsAsArray( ) );
-
 					}
 				}
 			}
 
 		}
 
-		if ( _myOscPlugMap.containsKey( theOscMessage.addrPattern( ) ) ) {
-
-			List< OscPlug > myOscPlugList = _myOscPlugMap.get( theOscMessage.addrPattern( ) );
-
+		if ( _myOscPlugMap.containsKey( theOscMessage.getAddress( ) ) ) {
+			List< OscPlug > myOscPlugList = _myOscPlugMap.get( theOscMessage.getAddress( ) );
 			for ( OscPlug plug : myOscPlugList ) {
-
 				if ( !plug.isArray && plug.checkMethod( theOscMessage , false ) ) {
-
 					theOscMessage.isPlugged = true;
-
-					invoke( plug.getObject( ) , plug.getMethod( ) , theOscMessage.arguments( ) );
-
+					invoke( plug.getObject( ) , plug.getMethod( ) , theOscMessage.getArguments( ) );
 				}
 			}
 		}
@@ -421,15 +399,10 @@ public class OscP5 implements Observer {
 		/* if no plug method was detected, then use the default oscEvent method */
 
 		if ( isEventMethod ) {
-
 			try {
-
 				invoke( parent , _myEventMethod , new Object[] { theOscMessage } );
-
 			} catch ( ClassCastException e ) {
-
 				LOGGER.warning( "OscHandler.callMethod, ClassCastException." + e );
-
 			}
 		}
 
@@ -438,21 +411,13 @@ public class OscP5 implements Observer {
 	private void invoke( final Object theObject , final Method theMethod , final Object[] theArgs ) {
 
 		try {
-
 			theMethod.invoke( theObject , theArgs );
-
 		} catch ( IllegalArgumentException e ) {
-
 			e.printStackTrace( );
-
 		} catch ( IllegalAccessException e ) {
-
 			e.printStackTrace( );
-
 		} catch ( InvocationTargetException e ) {
-
 			e.printStackTrace( );
-
 			LOGGER.finest( "An error occured while forwarding an OscMessage\n " + "to a method in your program. please check your code for any \n" + "possible errors that might occur in the method where incoming\n "
 					+ "OscMessages are parsed e.g. check for casting errors, possible\n " + "nullpointers, array overflows ... .\n" + "method in charge : " + theMethod.getName( ) + "  " + e );
 		}
@@ -460,37 +425,20 @@ public class OscP5 implements Observer {
 	}
 
 	public void process( Object o ) {
-
 		if ( o instanceof Map ) {
-
 			process( OscPacket.parse( ( Map ) o ) );
-
 		}
 	}
 
 	private void process( OscPacket thePacket ) {
-
 		if ( thePacket instanceof OscMessage ) {
-
 			callMethod( ( OscMessage ) thePacket );
-
 		} else if ( thePacket instanceof OscBundle ) {
-
 			OscBundle bundle = ( OscBundle ) thePacket;
-
 			for ( OscPacket p : bundle.messages ) {
 				process( p );
 			}
 		}
-	}
-
-	/**
-	 * incoming osc messages from an udp socket are parsed, processed and forwarded to the parent.
-	 * 
-	 */
-	@Deprecated
-	public void process( final DatagramPacket thePacket , final int thePort ) {
-		/* TODO , process( Map ) should be used. */
 	}
 
 	public OscProperties properties( ) {
@@ -524,30 +472,55 @@ public class OscP5 implements Observer {
 	 * your needs.
 	 */
 
-	public void send( final NetAddress theNetAddress , String theAddrPattern , Object ... theArguments ) {
-		sender.send( new OscMessage( theAddrPattern , theArguments ).getBytes( ) , theNetAddress.address( ) , theNetAddress.port( ) );
-	}
-
-	public void send( final NetAddress theNetAddress , final OscPacket thePacket ) {
-		sender.send( thePacket.getBytes( ) , theNetAddress.address( ) , theNetAddress.port( ) );
-	}
-
 	public void send( final OscPacket thePacket ) {
-		sender.send( thePacket.getBytes( ) , _myOscProperties.remoteAddress( ).address( ) , _myOscProperties.remoteAddress( ).port( ) );
-	}
-
-	public void send( final NetAddressList theNetAddressList , final OscPacket thePacket ) {
-		/* TODO */
-		// _myOscNetManager.send( thePacket , theNetAddressList );
+		transmit.send( thePacket.getBytes( ) );
 	}
 
 	public void send( final String theAddrPattern , final Object ... theArguments ) {
-		sender.send( new OscMessage( theAddrPattern , theArguments ).getBytes( ) , _myOscProperties.remoteAddress( ).address( ) , _myOscProperties.remoteAddress( ).port( ) );
+		transmit.send( new OscMessage( theAddrPattern , theArguments ).getBytes( ) );
 	}
 
-	public void send( final NetAddressList theNetAddressList , final String theAddrPattern , final Object ... theArguments ) {
-		/* TODO */
-		// _myOscNetManager.send( theNetAddressList , theAddrPattern , theArguments );
+	public void send( final NetAddress theNetAddress , String theAddrPattern , Object ... theArguments ) {
+		transmit.send( new OscMessage( theAddrPattern , theArguments ).getBytes( ) , theNetAddress.address( ) , theNetAddress.port( ) );
+	}
+
+	public void send( final NetAddress theNetAddress , final OscPacket thePacket ) {
+		transmit.send( thePacket.getBytes( ) , theNetAddress.address( ) , theNetAddress.port( ) );
+	}
+
+	public boolean send( final OscPacket thePacket , final Object theRemoteSocket ) {
+		if ( theRemoteSocket != null ) {
+
+			byte[] b = thePacket.getBytes( );
+			ByteBuffer buffer = ByteBuffer.allocate( b.length );
+			buffer.clear( );
+			buffer.put( b );
+			buffer.flip( );
+
+			if ( theRemoteSocket instanceof SocketChannel ) {
+				try {
+					( ( SocketChannel ) theRemoteSocket ).write( buffer );
+					return true;
+				} catch ( IOException e ) {
+					e.printStackTrace( );
+				}
+			} else if ( theRemoteSocket instanceof DatagramChannel ) {
+				try {
+					DatagramChannel d = ( ( DatagramChannel ) theRemoteSocket );
+					
+					System.out.println( String.format( "channel :  %s %s" ,   d.isConnected( ) , d.socket( ).getInetAddress( )));	
+					( ( DatagramChannel ) theRemoteSocket ).write( buffer );
+					return true;
+				} catch ( IOException e ) {
+					e.printStackTrace( );
+				} catch ( NotYetConnectedException e ) {
+					/* received a datagram packet, sender ip and port have been identified but we
+					 * are not able to connect to remote address due to no open socket availability. */
+					// e.printStackTrace( );
+				}
+			}
+		}
+		return false;
 	}
 
 	public void send( final int thePort , final String theAddrPattern , final String theAddress , final Object ... theArguments ) {
@@ -564,11 +537,11 @@ public class OscP5 implements Observer {
 	}
 
 	public void send( final String theHost , final int thePort , final OscPacket thePacket ) {
-		sender.send( thePacket.getBytes( ) , theHost , thePort );
+		transmit.send( thePacket.getBytes( ) , theHost , thePort );
 	}
 
 	public void send( final OscPacket thePacket , final String theHost , final int thePort ) {
-		sender.send( thePacket.getBytes( ) , theHost , thePort );
+		transmit.send( thePacket.getBytes( ) , theHost , thePort );
 	}
 
 	/**
@@ -587,11 +560,12 @@ public class OscP5 implements Observer {
 		flush( theNetAddress , ( new OscMessage( theAddrPattern , theArguments ) ).getBytes( ) );
 	}
 
-	static public byte[] bytes( Object o ) {
-		return ( o instanceof byte[] ) ? ( ( byte[] ) o ) : new byte[ 0 ];
-	}
-
 	/* DEPRECATED methods and constructors. */
+
+	@Deprecated
+	public void process( final DatagramPacket thePacket , final int thePort ) {
+		/* TODO , process( Map ) should be used. */
+	}
 
 	@Deprecated
 	public static void flush( final OscMessage theOscMessage , final NetAddress theNetAddress ) {
@@ -682,7 +656,7 @@ public class OscP5 implements Observer {
 
 	@Deprecated
 	public void send( final String theAddrPattern , final Object[] theArguments , final String theAddress , int thePort ) {
-		sender.send( new OscMessage( theAddrPattern , theArguments ).getBytes( ) , theAddress , thePort );
+		transmit.send( new OscMessage( theAddrPattern , theArguments ).getBytes( ) , theAddress , thePort );
 	}
 
 	@Deprecated
@@ -703,12 +677,21 @@ public class OscP5 implements Observer {
 
 	@Deprecated
 	public void send( final String theAddress , final int thePort , final String theAddrPattern , final Object ... theArguments ) {
-		/* TODO */
-		// _myOscNetManager.send( theAddress , thePort , theAddrPattern , theArguments );
+		transmit.send( new OscMessage( theAddrPattern , theArguments ).getBytes( ) , theAddress , thePort );
 	}
 
 	@Deprecated
 	public void send( final OscPacket thePacket , final TcpClient theClient ) {
+	}
+
+	public void send( final NetAddressList theNetAddressList , final OscPacket thePacket ) {
+		/* TODO */
+		// _myOscNetManager.send( thePacket , theNetAddressList );
+	}
+
+	public void send( final NetAddressList theNetAddressList , final String theAddrPattern , final Object ... theArguments ) {
+		/* TODO */
+		// _myOscNetManager.send( theNetAddressList , theAddrPattern , theArguments );
 	}
 
 	@Deprecated
@@ -723,5 +706,17 @@ public class OscP5 implements Observer {
 	public NetInfo netInfo( ) {
 		return new NetInfo( );
 	}
+
+	/* Notes */
+
+	/* TODO implement polling option to avoid threading and synchronization issues. check email from
+	 * tom lieber. look into mutex objects.
+	 * http://www.google.com/search?hl=en&q=mutex+java&btnG=Search */
+
+	/* how to disable the logger
+	 * 
+	 * Logger l0 = Logger.getLogger(""); // get the global logger
+	 * 
+	 * l0.removeHandler(l0.getHandlers()[0]); // remove handler */
 
 }
