@@ -1,3 +1,14 @@
+2013-10-29  Andreas Schlegel
+      
+      * src netP5.StringUtils.java:
+      removed.
+
+2013-10-29  Andreas Schlegel
+
+      * src netP5.*:
+      massive rework on network protocol classes
+
+      	
 2013-07-21  Andreas Schlegel
 
       * src netP5.NetInfo.java:
