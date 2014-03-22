@@ -1,0 +1,3 @@
+In order to  use the oscP5 library in applications developed for the Android operating system, the author of the oscP5 library grants permission to treat the static lib compiled by this project as if it were a dynamic lib with respect to the terms of the LGPL. All the terms and provisions which apply to dynamic libs are conferred to the oscP5 SDK. If you have a question about this, feel free to either email the author directly or open an issue in the project for clarification.
+
+(this exception for the Android operating system has been adopted from https://github.com/mrRay/vvopensource/blob/master/README.md)
