@@ -1,3 +1,0 @@
-
-when plugging a boolean, which does not come with a value but only a type tag T and F, 
-the plug only works for true but fails for false
