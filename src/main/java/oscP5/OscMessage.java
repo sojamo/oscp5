@@ -90,23 +90,24 @@ public class OscMessage extends OscPacket {
 	/**
 	 * clear and reset an OscMessage for reuse.
 	 */
-	public void clear( ) {
+	public OscMessage clear( ) {
 		init( );
 		setAddress( "" );
 		setArguments( new Object[ 0 ] );
-
+	return this;
 	}
 
-	public void clearArguments( ) {
+	public OscMessage clearArguments( ) {
 		_myTypetag = new byte[ 0 ];
 		_myData = new byte[ 0 ];
 		_myArguments = new Object[ 0 ];
+		return this;
 	}
 
 	/**
 	 * TODO set should enable the programmer to set values of an existing osc message.
 	 */
-	public void set( final int theIndex , final Object theObject ) {
+	public OscMessage set( final int theIndex , final Object theObject ) {
 		// byte[] myPreTypetag = new byte[theIndex];
 		// byte[] myPostTypetag = new byte[_myTypetag.length - theIndex];
 		System.out.println( "Typetag:\t" + _myTypetag.length );
@@ -116,6 +117,7 @@ public class OscMessage extends OscPacket {
 		for ( int i = 0 ; i < _myArguments.length ; i++ ) {
 			System.out.println( _myArguments[ i ] );
 		}
+		return this;
 	}
 
 	public boolean checkTypetag( final String theTypeTag ) {
@@ -138,12 +140,14 @@ public class OscMessage extends OscPacket {
 	 * address patterns when sending and receiving messages.
 	 * 
 	 */
-	public void setAddress( final String theAddrPattern ) {
+	public OscMessage setAddress( final String theAddrPattern ) {
 		_myAddrPattern = theAddrPattern.getBytes( );
+		return this;
 	}
 
-	public void setAddress( final int theAddrPattern ) {
+	public OscMessage setAddress( final int theAddrPattern ) {
 		_myAddrPattern = Bytes.toBytes( theAddrPattern );
+		return this;
 	}
 
 	/**
@@ -152,9 +156,10 @@ public class OscMessage extends OscPacket {
 	 * addArguments(Object[])
 	 * 
 	 */
-	public void setArguments( final Object ... theArguments ) {
+	public OscMessage setArguments( final Object ... theArguments ) {
 		clearArguments( );
 		add( theArguments );
+		return this;
 	}
 
 	public String getAddress( ) {
@@ -313,6 +318,11 @@ public class OscMessage extends OscPacket {
 
 	public OscMessage add( final Double theValue ) {
 		add( theValue.doubleValue( ) );
+		return this;
+	}
+	
+	public OscMessage add( final Long theValue ) {
+		add( theValue.longValue( ) );
 		return this;
 	}
 

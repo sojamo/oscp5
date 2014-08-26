@@ -50,25 +50,28 @@ public class OscBundle extends OscPacket {
 		_myMessageSize = parseBundle( m );
 	}
 
-	public void add( OscMessage ... theOscMessages ) {
+	public OscBundle add( OscMessage ... theOscMessages ) {
 		for ( OscMessage m : theOscMessages ) {
 			messages.add( new OscMessage( m ) );
 			/* duplicate the OSC message ( sure this is a deep copy? ) */
 		}
 		_myMessageSize = messages.size( );
-
+		return this;
 	}
 
-	public void clear( ) {
+	public OscBundle clear( ) {
 		messages = new ArrayList< OscMessage >( );
+		return this;
 	}
 
-	public void remove( int theIndex ) {
+	public OscBundle remove( int theIndex ) {
 		messages.remove( theIndex );
+		return this;
 	}
 
-	public void remove( OscMessage theOscMessage ) {
+	public OscBundle remove( OscMessage theOscMessage ) {
 		messages.remove( theOscMessage );
+		return this;
 	}
 
 	public OscMessage getMessage( int theIndex ) {
@@ -86,10 +89,11 @@ public class OscBundle extends OscPacket {
 	 * for execution at a set time.
 	 * 
 	 */
-	public void setTimetag( long theTime ) {
+	public OscBundle setTimetag( long theTime ) {
 		final long secsSince1900 = theTime / 1000 + TIMETAG_OFFSET;
 		final long secsFractional = ( ( theTime % 1000 ) << 32 ) / 1000;
 		timetag = ( secsSince1900 << 32 ) | secsFractional;
+		return this;
 	}
 
 	public static long now( ) {

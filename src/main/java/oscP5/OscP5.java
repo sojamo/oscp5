@@ -25,7 +25,14 @@
 
 package oscP5;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutput;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.DatagramPacket;
@@ -67,6 +74,10 @@ import netP5.UdpServer;
 /**
  * TODO add better error message handling for oscEvents, see this post
  * http://forum.processing.org/topic/oscp5-major-problems-with-error-handling# 25080000000811163
+ * 
+ * TODO add option to define host IP, see this thread:
+ * http://forum.processing.org/two/discussion/2550/oscp5-android-cannot-send-only-receive
+ * 
  */
 public class OscP5 implements Observer {
 
@@ -139,7 +150,7 @@ public class OscP5 implements Observer {
 
 		welcome( );
 		parent = ( theParent == null ) ? new Object( ) : theParent;
-		registerDispose( parent );
+		registerDispose( parent ); 
 		_myOscProperties = theProperties;
 		isEventMethod = checkEventMethod( );
 
@@ -488,6 +499,16 @@ public class OscP5 implements Observer {
 		transmit.send( thePacket.getBytes( ) , theNetAddress.address( ) , theNetAddress.port( ) );
 	}
 
+	public void send( final List< NetAddress > theList , String theAddrPattern , Object ... theArguments ) {
+		send( theList , new OscMessage( theAddrPattern , theArguments ) );
+	}
+
+	public void send( final List< NetAddress > theList , final OscPacket thePacket ) {
+		for ( NetAddress addr : theList ) {
+			transmit.send( thePacket.getBytes( ) , addr.address( ) , addr.port( ) );
+		}
+	}
+
 	public boolean send( final OscPacket thePacket , final Object theRemoteSocket ) {
 		if ( theRemoteSocket != null ) {
 
@@ -507,8 +528,8 @@ public class OscP5 implements Observer {
 			} else if ( theRemoteSocket instanceof DatagramChannel ) {
 				try {
 					DatagramChannel d = ( ( DatagramChannel ) theRemoteSocket );
-					
-					System.out.println( String.format( "channel :  %s %s" ,   d.isConnected( ) , d.socket( ).getInetAddress( )));	
+
+					System.out.println( String.format( "channel :  %s %s" , d.isConnected( ) , d.socket( ).getInetAddress( ) ) );
 					( ( DatagramChannel ) theRemoteSocket ).write( buffer );
 					return true;
 				} catch ( IOException e ) {
@@ -521,6 +542,59 @@ public class OscP5 implements Observer {
 			}
 		}
 		return false;
+	}
+
+	static final public byte[] serialize( Object o ) {
+		if(o instanceof Serializable) {
+			return serialize((Serializable)o);
+		}
+		return new byte[0];
+	}
+	
+	static final public byte[] serialize( Serializable o ) {
+		ByteArrayOutputStream bos = new ByteArrayOutputStream( );
+		ObjectOutput out = null;
+		byte[] bytes = new byte[ 0 ];
+		try {
+			out = new ObjectOutputStream( bos );
+			out.writeObject( o );
+			bytes = bos.toByteArray( );
+		} catch ( Exception e ) {
+		} finally {
+			try {
+				out.close( );
+				bos.close( );
+			} catch ( IOException e ) {
+				// TODO Auto-generated catch block
+				e.printStackTrace( );
+			}
+		}
+		return bytes;
+	}
+
+	static final public Object deserialize( byte[] theBytes ) {
+		ByteArrayInputStream bis = new ByteArrayInputStream( theBytes );
+		ObjectInput in = null;
+		Object o = null;
+		try {
+			in = new ObjectInputStream( bis );
+			o = in.readObject( );
+		} catch ( IOException e ) {
+			// TODO Auto-generated catch block
+			e.printStackTrace( );
+		} catch ( ClassNotFoundException e ) {
+			// TODO Auto-generated catch block
+			e.printStackTrace( );
+		} finally {
+			try {
+				bis.close( );
+				in.close( );
+			} catch ( IOException e ) {
+				// TODO Auto-generated catch block
+				e.printStackTrace( );
+			}
+		}
+		return o;
 	}
 
 	public void send( final int thePort , final String theAddrPattern , final String theAddress , final Object ... theArguments ) {
