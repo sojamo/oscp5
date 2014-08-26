@@ -48,16 +48,18 @@ public final class UdpServer extends Observable implements Transmitter {
 	private final InternalServer server;
 
 	public UdpServer( final int thePort , final int theDatagramSize ) {
+		this( null , thePort , theDatagramSize );
+	}
 
-		/* This is a very basic UDP server listening for incoming message and forwarding the message
-		 * to all registered observers. This server can be used for simple networking operations
-		 * with a small amount of clients. For larger scale network operations make use of more
-		 * sophisticated services such as for example netty.io, apache mina - for NAT traversal
-		 * consider JSTUN - or use a messaging middleware such as rabbitMQ or the messaging library
-		 * zeroMQ */
+	public UdpServer( final String theHost , final int thePort , final int theDatagramSize ) {
 
-		server = new InternalServer( thePort , theDatagramSize );
+		/* This is a very basic UDP server listening for incoming message and forwarding the message to all registered
+		 * observers. This server can be used for simple networking operations with a small amount of clients. For
+		 * larger scale network operations make use of more sophisticated services such as for example netty.io, apache
+		 * mina - for NAT traversal consider JSTUN - or use a messaging middleware such as rabbitMQ or the messaging
+		 * library zeroMQ */
 
+		server = new InternalServer( theHost , thePort , theDatagramSize );
 	}
 
 	public boolean close( ) {
@@ -105,15 +107,13 @@ public final class UdpServer extends Observable implements Transmitter {
 	class InternalServer implements Runnable {
 
 		private DatagramChannel channel;
-
 		private final int port;
-
 		private final int size;
-
 		private final Thread thread;
+		private final String host;
 
-		InternalServer( int thePort , int theDatagramSize ) {
-
+		InternalServer( String theHost , int thePort , int theDatagramSize ) {
+			host = theHost;
 			port = thePort;
 			size = theDatagramSize;
 			thread = ( new Thread( this ) );
@@ -128,7 +128,8 @@ public final class UdpServer extends Observable implements Transmitter {
 				Selector selector = SelectorProvider.provider( ).openSelector( );
 				channel = DatagramChannel.open( );
 				channel.configureBlocking( false );
-				channel.socket( ).bind( new InetSocketAddress( port ) );
+				InetSocketAddress isa = ( host == null ) ? new InetSocketAddress( port ) : new InetSocketAddress( host , port );
+				channel.socket( ).bind( isa );
 				channel.register( selector , SelectionKey.OP_READ , ByteBuffer.allocate( size ) );
 
 				/* Let's listen for incoming messages */

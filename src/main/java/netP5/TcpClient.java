@@ -23,7 +23,6 @@
  * @version		##version##
  */
 
-
 package netP5;
 
 import java.io.IOException;
@@ -51,33 +50,20 @@ public final class TcpClient extends Observable implements Runnable , Transmitte
 	/* adapted from http://bobah.net/d4d/source-code/networking/tcp-client-java-nio */
 
 	private static final long INITIAL_RECONNECT_INTERVAL = 500; // 500 ms.
-
 	private static final long MAXIMUM_RECONNECT_INTERVAL = 30000; // 30 sec.
-
 	private static final int READ_BUFFER_SIZE = 0x100000;
-
 	private static final int WRITE_BUFFER_SIZE = 0x100000;
-
 	private long reconnectInterval = INITIAL_RECONNECT_INTERVAL;
-
+	private boolean reconnect = false;
 	private ByteBuffer readBuffer = ByteBuffer.allocateDirect( READ_BUFFER_SIZE ); // 1Mb
-
 	private ByteBuffer writeBuffer = ByteBuffer.allocateDirect( WRITE_BUFFER_SIZE ); // 1Mb
-
 	private final Thread thread = new Thread( this );
-
 	private SocketAddress address;
-
 	private Selector selector;
-
 	private SocketChannel channel;
-
 	private final AtomicBoolean connected = new AtomicBoolean( false );
-
 	private AtomicLong bytesOut = new AtomicLong( 0L );
-
 	private AtomicLong bytesIn = new AtomicLong( 0L );
-
 	private final byte[] emptybuffer = new byte[ 0 ];
 
 	public TcpClient( String theHost , int thePort ) {
@@ -123,12 +109,14 @@ public final class TcpClient extends Observable implements Runnable , Transmitte
 	public boolean close( ) {
 		try {
 			channel.close( );
+			//stop( );
 			return true;
-		} catch ( IOException e ) {
+		} catch ( Exception e ) {
 			e.printStackTrace( );
 		}
 		return false;
 	}
+	
 
 	private void notification( byte[] theData , int theOperation , SelectionKey theKey ) {
 
@@ -300,24 +288,28 @@ public final class TcpClient extends Observable implements Runnable , Transmitte
 
 				}
 
-				try {
+				if ( reconnect ) {
+					try {
 
-					Thread.sleep( reconnectInterval );
-					if ( reconnectInterval < MAXIMUM_RECONNECT_INTERVAL ) {
-						reconnectInterval *= 2;
+						Thread.sleep( reconnectInterval );
+						if ( reconnectInterval < MAXIMUM_RECONNECT_INTERVAL ) {
+							reconnectInterval *= 2;
+						}
+
+						System.out.println( "reconnecting to " + address );
+
+					} catch ( InterruptedException e ) {
+						break;
 					}
-
-					System.out.println( "reconnecting to " + address );
-
-				} catch ( InterruptedException e ) {
-					break;
+				} else {
+					stop( );
 				}
 			}
 		} catch ( Exception e ) {
 			System.out.println( "unrecoverable error " + e );
+		} finally {
+			System.out.println( "event loop terminated." );
 		}
-
-		System.out.println( "event loop terminated" );
 
 	}
 

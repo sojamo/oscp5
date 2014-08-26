@@ -23,7 +23,6 @@
  * @version		##version##
  */
 
-
 package netP5;
 
 import java.io.IOException;
@@ -45,29 +44,30 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Observable;
+import java.util.Observer;
 import java.util.Set;
 import java.util.logging.Logger;
 
 public final class TcpServer extends Observable implements Transmitter {
 
 	private final static Logger LOGGER = Logger.getLogger( TcpServer.class.getName( ) );
-
 	private Selector selector;
-
 	private final List< SelectionKey > clients = new ArrayList< SelectionKey >( );
-
 	private final byte[] emptybuffer = new byte[ 0 ];
-
 	private final Server server;
 
-	public TcpServer( int thePort ) {
-		server = new Server( thePort );
+	public TcpServer( String theIP , int thePort ) {
+		server = new Server( theIP , thePort );
 		( new Thread( server ) ).start( );
 	}
 
+	public TcpServer( int thePort ) {
+		this( null , thePort );
+	}
+
 	/**
-	 * just for legacy purposes to get the size of clients registered, returns an array of size
-	 * clients.size() with null objects.
+	 * just for legacy purposes to get the size of clients registered, returns an array of size clients.size() with null
+	 * objects.
 	 */
 	public Object[] getClients( ) {
 		return new Object[ clients.size( ) ];
@@ -103,8 +103,7 @@ public final class TcpServer extends Observable implements Transmitter {
 	}
 
 	/**
-	 * Read from a client. Enqueue the data on the clients output queue and set the selector to
-	 * notify on OP_WRITE.
+	 * Read from a client. Enqueue the data on the clients output queue and set the selector to notify on OP_WRITE.
 	 */
 	private void doRead( SelectionKey sk ) {
 
@@ -115,6 +114,7 @@ public final class TcpServer extends Observable implements Transmitter {
 			len = channel.read( bb );
 			if ( len < 0 ) {
 				disconnect( sk );
+				System.out.println( "Disconnecting " + channel + "; client size = "+clients.size( ) );
 				return;
 			}
 			notification( bb.array( ) , SelectionKey.OP_READ , sk );
@@ -150,7 +150,6 @@ public final class TcpServer extends Observable implements Transmitter {
 	}
 
 	public boolean send( byte[] theContent , String theHost , int thePort ) {
-
 		return send( theContent );
 	}
 
@@ -210,8 +209,10 @@ public final class TcpServer extends Observable implements Transmitter {
 	private void disconnect( SelectionKey sk ) {
 		SocketChannel channel = ( SocketChannel ) sk.channel( );
 
-		clients.remove( sk ); /* TODO does not remove properly */
+		System.out.println( "disconnecting; size=" + clients.size( ) );
 		notification( emptybuffer , 0 , sk );
+		clients.remove( sk ); /* TODO does not remove properly */
+		System.out.println( "disconnected; size=" + clients.size( ) );
 		try {
 			channel.close( );
 		} catch ( Exception e ) {
@@ -224,6 +225,7 @@ public final class TcpServer extends Observable implements Transmitter {
 		Map< String , Object > m = new HashMap< String , Object >( );
 		SocketChannel channel = ( ( SocketChannel ) theKey.channel( ) );
 		m.put( "data" , theData );
+		m.put( "length" , theData.length );
 		m.put( "received-at" , System.currentTimeMillis( ) );
 		m.put( "socket-type" , "tcp" );
 		m.put( "operation" , theOperation );
@@ -238,20 +240,25 @@ public final class TcpServer extends Observable implements Transmitter {
 	private class Server implements Runnable {
 
 		private final int port;
-
 		private ServerSocketChannel channel;
+		private final String ip;
 
-		Server( int thePort ) {
+		Server( String theIP , int thePort ) {
+			ip = theIP;
 			port = thePort;
 
+		}
+
+		Server( int thePort ) {
+			ip = null;
+			port = thePort;
 		}
 
 		public void run( ) {
 			try {
 				selector = SelectorProvider.provider( ).openSelector( );
 
-				/* more information on selectors and how to use them
-				 * http://tutorials.jenkov.com/java-nio/selectors.html */
+				/* more information on selectors and how to use them http://tutorials.jenkov.com/java-nio/selectors.html */
 
 				/* Create non-blocking server socket. */
 				channel = ServerSocketChannel.open( );
@@ -259,8 +266,12 @@ public final class TcpServer extends Observable implements Transmitter {
 				channel.configureBlocking( false );
 
 				/* Bind the server socket to Localhost */
-				InetSocketAddress isa = new InetSocketAddress( InetAddress.getLocalHost( ) , port );
-
+				InetSocketAddress isa;
+				if ( ip != null ) {
+					isa = new InetSocketAddress( ip , port );
+				} else {
+					isa = new InetSocketAddress( InetAddress.getLocalHost( ) , port );
+				}
 				channel.socket( ).bind( isa );
 
 				/* Register the socket for select events. */
@@ -300,7 +311,6 @@ public final class TcpServer extends Observable implements Transmitter {
 	private class Client {
 
 		private LinkedList< ByteBuffer > outq;
-
 		final SelectionKey clientKey;
 
 		Client( SelectionKey theKey ) {
@@ -320,12 +330,17 @@ public final class TcpServer extends Observable implements Transmitter {
 	}
 
 	public static void main( String[] args ) {
-		new TcpServer( 10000 );
+		TcpServer server = new TcpServer( "127.0.0.1" , 10000 );
+		server.addObserver( new Observer( ) {
+
+			public void update( Observable o , Object arg ) {
+				System.out.println( "received a packet " + arg );
+			}
+		} );
 	}
 
 	/* Notes */
 
-	/* adapted from
-	 * http://ishbits.googlecode.com/svn-history/r29/trunk/java.nio.EchoServer/EchoServer.java */
+	/* adapted from http://ishbits.googlecode.com/svn-history/r29/trunk/java.nio.EchoServer/EchoServer.java */
 
 }
