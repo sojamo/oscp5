@@ -40,6 +40,7 @@ void oscEvent( OscMessage m ) {
     y0 = m.floatValue(1);
     r0 = m.floatValue(2);
   }
+  println();
 }
 
 
