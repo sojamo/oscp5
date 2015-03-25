@@ -1,8 +1,8 @@
 /**
  * An OSC (Open Sound Control) library for processing.
- *
+ * 
  * ##copyright##
- *
+ * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
@@ -10,17 +10,17 @@
  * 
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
  * 
  * You should have received a copy of the GNU Lesser General
  * Public License along with this library; if not, write to the
  * Free Software Foundation, Inc., 59 Temple Place, Suite 330,
- * Boston, MA  02111-1307  USA
+ * Boston, MA 02111-1307 USA
  * 
- * @author		##author##
- * @modified	##date##
- * @version		##version##
+ * @author ##author##
+ * @modified ##date##
+ * @version ##version##
  */
 
 package oscP5;
@@ -82,11 +82,8 @@ import netP5.UdpServer;
 public class OscP5 implements Observer {
 
 	final static Logger LOGGER = Logger.getLogger( OscP5.class.getName( ) );
-
 	protected Map< String , List< OscPlug >> _myOscPlugMap = new HashMap< String , List< OscPlug >>( );
-
 	public final static boolean ON = OscProperties.ON;
-
 	public final static boolean OFF = OscProperties.OFF;
 
 	/* a static variable used when creating an oscP5 instance with a specified network protocol. */
@@ -99,21 +96,13 @@ public class OscP5 implements Observer {
 	public final static int TCP = OscProperties.TCP;
 
 	private OscProperties _myOscProperties;
-
 	private Method _myEventMethod;
-
 	private Class< ? > _myEventClass = OscMessage.class;
-
 	private boolean isEventMethod;
-
 	private boolean isBroadcast = false;
-
-	public static final String VERSION = "2.0.1";
-
+	public static final String VERSION = "2.0.3";
 	static private int welcome = 0;
-
 	private Transmitter transmit;
-
 	private Object parent;
 
 	/**
@@ -150,7 +139,7 @@ public class OscP5 implements Observer {
 
 		welcome( );
 		parent = ( theParent == null ) ? new Object( ) : theParent;
-		registerDispose( parent ); 
+		registerDispose( parent );
 		_myOscProperties = theProperties;
 		isEventMethod = checkEventMethod( );
 
@@ -160,7 +149,7 @@ public class OscP5 implements Observer {
 				UdpClient udpclient = NetP5.createUdpClient( _myOscProperties.remoteAddress( ).address( ) , _myOscProperties.remoteAddress( ).port( ) );
 				transmit = udpclient;
 			} else {
-				UdpServer udpserver = NetP5.createUdpServer( _myOscProperties.listeningPort( ) , _myOscProperties.datagramSize( ) );
+				UdpServer udpserver = NetP5.createUdpServer( _myOscProperties.host( ) , _myOscProperties.listeningPort( ) , _myOscProperties.datagramSize( ) );
 				udpserver.addObserver( this );
 				transmit = udpserver;
 			}
@@ -242,7 +231,8 @@ public class OscP5 implements Observer {
 					parent = theObject;
 				}
 			} catch ( Exception e ) {
-				e.printStackTrace( );
+				System.out.println( "registerDispose failed (1)" );
+				// e.printStackTrace( );
 			}
 
 			try {
@@ -250,15 +240,18 @@ public class OscP5 implements Observer {
 				try {
 					method.invoke( parent , new Object[] { "dispose" , this } );
 				} catch ( Exception e ) {
-					e.printStackTrace( );
+					System.out.println( "registerDispose failed (2)" );
+					// e.printStackTrace( );
 				}
 
 			} catch ( NoSuchMethodException e ) {
+				System.out.println( "registerDispose failed (3)" );
 				// e.printStackTrace( );
 			}
 
 		} catch ( NullPointerException e ) {
-			e.printStackTrace( );
+			System.out.println( "registerDispose failed (4)" );
+			// e.printStackTrace( );
 		}
 	}
 
@@ -297,8 +290,7 @@ public class OscP5 implements Observer {
 
 			} catch ( SecurityException e1 ) {
 				LOGGER.warning( "### security issues in OscP5.checkEventMethod(). (this occures when running in applet mode)" );
-			} catch ( NoSuchMethodException e1 ) {
-			}
+			} catch ( NoSuchMethodException e1 ) {}
 		}
 
 		if ( _myEventMethod != null ) {
@@ -351,8 +343,7 @@ public class OscP5 implements Observer {
 			String myTypetag = "";
 			try {
 				myMethods[ i ].setAccessible( true );
-			} catch ( Exception e ) {
-			}
+			} catch ( Exception e ) {}
 			if ( ( myMethods[ i ].getName( ) ).equals( theMethodName ) ) {
 				myParams = myMethods[ i ].getParameterTypes( );
 				OscPlug myOscPlug = new OscPlug( );
@@ -430,7 +421,7 @@ public class OscP5 implements Observer {
 		} catch ( InvocationTargetException e ) {
 			e.printStackTrace( );
 			LOGGER.finest( "An error occured while forwarding an OscMessage\n " + "to a method in your program. please check your code for any \n" + "possible errors that might occur in the method where incoming\n "
-					+ "OscMessages are parsed e.g. check for casting errors, possible\n " + "nullpointers, array overflows ... .\n" + "method in charge : " + theMethod.getName( ) + "  " + e );
+			    + "OscMessages are parsed e.g. check for casting errors, possible\n " + "nullpointers, array overflows ... .\n" + "method in charge : " + theMethod.getName( ) + "  " + e );
 		}
 
 	}
@@ -545,12 +536,12 @@ public class OscP5 implements Observer {
 	}
 
 	static final public byte[] serialize( Object o ) {
-		if(o instanceof Serializable) {
-			return serialize((Serializable)o);
+		if ( o instanceof Serializable ) {
+			return serialize( ( Serializable ) o );
 		}
-		return new byte[0];
+		return new byte[ 0 ];
 	}
-	
+
 	static final public byte[] serialize( Serializable o ) {
 		ByteArrayOutputStream bos = new ByteArrayOutputStream( );
 		ObjectOutput out = null;
@@ -559,8 +550,7 @@ public class OscP5 implements Observer {
 			out = new ObjectOutputStream( bos );
 			out.writeObject( o );
 			bytes = bos.toByteArray( );
-		} catch ( Exception e ) {
-		} finally {
+		} catch ( Exception e ) {} finally {
 			try {
 				out.close( );
 				bos.close( );
@@ -636,28 +626,23 @@ public class OscP5 implements Observer {
 
 	/* DEPRECATED methods and constructors. */
 
-	@Deprecated
-	public void process( final DatagramPacket thePacket , final int thePort ) {
+	@Deprecated public void process( final DatagramPacket thePacket , final int thePort ) {
 		/* TODO , process( Map ) should be used. */
 	}
 
-	@Deprecated
-	public static void flush( final OscMessage theOscMessage , final NetAddress theNetAddress ) {
+	@Deprecated public static void flush( final OscMessage theOscMessage , final NetAddress theNetAddress ) {
 		flush( theOscMessage.getBytes( ) , theNetAddress );
 	}
 
-	@Deprecated
-	public static void flush( final OscPacket theOscPacket , final NetAddress theNetAddress ) {
+	@Deprecated public static void flush( final OscPacket theOscPacket , final NetAddress theNetAddress ) {
 		flush( theOscPacket.getBytes( ) , theNetAddress );
 	}
 
-	@Deprecated
-	public static void flush( final String theAddrPattern , final Object[] theArguments , final NetAddress theNetAddress ) {
+	@Deprecated public static void flush( final String theAddrPattern , final Object[] theArguments , final NetAddress theNetAddress ) {
 		flush( ( new OscMessage( theAddrPattern , theArguments ) ).getBytes( ) , theNetAddress );
 	}
 
-	@Deprecated
-	public static void flush( final byte[] theBytes , final NetAddress theNetAddress ) {
+	@Deprecated public static void flush( final byte[] theBytes , final NetAddress theNetAddress ) {
 		DatagramSocket mySocket;
 		try {
 			mySocket = new DatagramSocket( );
@@ -671,18 +656,15 @@ public class OscP5 implements Observer {
 		}
 	}
 
-	@Deprecated
-	public static void flush( final byte[] theBytes , final String theAddress , final int thePort ) {
+	@Deprecated public static void flush( final byte[] theBytes , final String theAddress , final int thePort ) {
 		flush( theBytes , new NetAddress( theAddress , thePort ) );
 	}
 
-	@Deprecated
-	public static void flush( final OscMessage theOscMessage , final String theAddress , final int thePort ) {
+	@Deprecated public static void flush( final OscMessage theOscMessage , final String theAddress , final int thePort ) {
 		flush( theOscMessage.getBytes( ) , new NetAddress( theAddress , thePort ) );
 	}
 
-	@Deprecated
-	public OscP5( final Object theParent , final String theHost , final int theSendToPort , final int theReceiveAtPort , final String theMethodName ) {
+	@Deprecated public OscP5( final Object theParent , final String theHost , final int theSendToPort , final int theReceiveAtPort , final String theMethodName ) {
 
 		welcome( );
 
@@ -693,69 +675,57 @@ public class OscP5 implements Observer {
 		/* TODO */
 	}
 
-	@Deprecated
-	public OscMessage newMsg( String theAddrPattern ) {
+	@Deprecated public OscMessage newMsg( String theAddrPattern ) {
 		return new OscMessage( theAddrPattern );
 	}
 
-	@Deprecated
-	public OscBundle newBundle( ) {
+	@Deprecated public OscBundle newBundle( ) {
 		return new OscBundle( );
 	}
 
 	/**
 	 * used by the monome library by jklabs
 	 */
-	@Deprecated
-	public void disconnectFromTEMP( ) {
+	@Deprecated public void disconnectFromTEMP( ) {
 	}
 
-	@Deprecated
-	public OscP5( final Object theParent , final String theAddress , final int thePort ) {
+	@Deprecated public OscP5( final Object theParent , final String theAddress , final int thePort ) {
 		// this( theParent , theAddress , thePort , OscProperties.MULTICAST );
 		parent = theParent;
 	}
 
-	@Deprecated
-	public void send( final String theAddrPattern , final Object[] theArguments , final NetAddress theNetAddress ) {
+	@Deprecated public void send( final String theAddrPattern , final Object[] theArguments , final NetAddress theNetAddress ) {
 		/* TODO */
 		// _myOscNetManager.send( theAddrPattern , theArguments , theNetAddress );
 	}
 
-	@Deprecated
-	public void send( final String theAddrPattern , final Object[] theArguments , final NetAddressList theNetAddressList ) {
+	@Deprecated public void send( final String theAddrPattern , final Object[] theArguments , final NetAddressList theNetAddressList ) {
 		/* TODO */
 		// _myOscNetManager.send( theAddrPattern , theArguments , theNetAddressList );
 	}
 
-	@Deprecated
-	public void send( final String theAddrPattern , final Object[] theArguments , final String theAddress , int thePort ) {
+	@Deprecated public void send( final String theAddrPattern , final Object[] theArguments , final String theAddress , int thePort ) {
 		transmit.send( new OscMessage( theAddrPattern , theArguments ).getBytes( ) , theAddress , thePort );
 	}
 
-	@Deprecated
-	public void send( final String theAddrPattern , final Object[] theArguments , final TcpClient theClient ) {
+	@Deprecated public void send( final String theAddrPattern , final Object[] theArguments , final TcpClient theClient ) {
 		send( new OscMessage( theAddrPattern , theArguments ) , theClient );
 	}
 
-	@Deprecated
-	public void send( final OscPacket thePacket , final NetAddress theNetAddress ) {
+	@Deprecated public void send( final OscPacket thePacket , final NetAddress theNetAddress ) {
 		send( theNetAddress , thePacket );
 	}
 
-	@Deprecated
-	public void send( final OscPacket thePacket , final NetAddressList theNetAddressList ) {
+	@Deprecated public void send( final OscPacket thePacket , final NetAddressList theNetAddressList ) {
 		/* TODO */
 		// _myOscNetManager.send( thePacket , theNetAddressList );
 	}
 
-	@Deprecated
-	public void send( final String theAddress , final int thePort , final String theAddrPattern , final Object ... theArguments ) {
+	@Deprecated public void send( final String theAddress , final int thePort , final String theAddrPattern , final Object ... theArguments ) {
 		transmit.send( new OscMessage( theAddrPattern , theArguments ).getBytes( ) , theAddress , thePort );
 	}
 
-	@Deprecated
-	public void send( final OscPacket thePacket , final TcpClient theClient ) {
+	@Deprecated public void send( final OscPacket thePacket , final TcpClient theClient ) {
 	}
 
 	public void send( final NetAddressList theNetAddressList , final OscPacket thePacket ) {
@@ -768,16 +738,13 @@ public class OscP5 implements Observer {
 		// _myOscNetManager.send( theNetAddressList , theAddrPattern , theArguments );
 	}
 
-	@Deprecated
-	public static void setLogStatus( final int theIndex , final int theValue ) {
+	@Deprecated public static void setLogStatus( final int theIndex , final int theValue ) {
 	}
 
-	@Deprecated
-	public static void setLogStatus( final int theValue ) {
+	@Deprecated public static void setLogStatus( final int theValue ) {
 	}
 
-	@Deprecated
-	public NetInfo netInfo( ) {
+	@Deprecated public NetInfo netInfo( ) {
 		return new NetInfo( );
 	}
 

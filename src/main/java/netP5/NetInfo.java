@@ -1,8 +1,8 @@
 /**
  * A network library for processing which supports UDP, TCP and Multicast.
- *
+ * 
  * ##copyright##
- *
+ * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
@@ -10,17 +10,17 @@
  * 
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
  * 
  * You should have received a copy of the GNU Lesser General
  * Public License along with this library; if not, write to the
  * Free Software Foundation, Inc., 59 Temple Place, Suite 330,
- * Boston, MA  02111-1307  USA
+ * Boston, MA 02111-1307 USA
  * 
- * @author		##author##
- * @modified	##date##
- * @version		##version##
+ * @author ##author##
+ * @modified ##date##
+ * @version ##version##
  */
 
 package netP5;
@@ -50,10 +50,10 @@ public class NetInfo {
 
 	public static void print( ) {
 		try {
-			java.net.InetAddress i = java.net.InetAddress.getLocalHost( );
-			System.out.println( "### hostname/ip " + i ); // name and IP address
-			System.out.println( "### hostname " + i.getHostName( ) ); // name
-			System.out.println( "### ip " + i.getHostAddress( ) ); // IP address
+			java.net.InetAddress i1 = java.net.InetAddress.getLocalHost( );
+			System.out.println( "### hostname/ip : " + i1 ); // name and IP address
+			System.out.println( "### hostname : " + i1.getHostName( ) ); // name
+			System.out.println( "### ip : " + i1.getHostAddress( ) ); // IP address
 			// only
 		} catch ( Exception e ) {
 			e.printStackTrace( );
@@ -64,8 +64,7 @@ public class NetInfo {
 		try {
 			java.net.InetAddress i = java.net.InetAddress.getLocalHost( );
 			return i.getHostAddress( );
-		} catch ( Exception e ) {
-		}
+		} catch ( Exception e ) {}
 		return "ERROR";
 	}
 
@@ -155,7 +154,57 @@ public class NetInfo {
 		return m;
 	}
 
+	static public String getIpAddress( ) {
+		// see [1]
+		String ip = "";
+		try {
+			Enumeration< NetworkInterface > enumNetworkInterfaces = NetworkInterface.getNetworkInterfaces( );
+			while ( enumNetworkInterfaces.hasMoreElements( ) ) {
+				NetworkInterface networkInterface = enumNetworkInterfaces.nextElement( );
+				Enumeration< InetAddress > enumInetAddress = networkInterface.getInetAddresses( );
+				while ( enumInetAddress.hasMoreElements( ) ) {
+					InetAddress inetAddress = enumInetAddress.nextElement( );
+
+					String ipAddress = "";
+					if ( inetAddress.isLoopbackAddress( ) ) {
+						ipAddress = "LoopbackAddress: ";
+					} else if ( inetAddress.isSiteLocalAddress( ) ) {
+						ipAddress = "SiteLocalAddress: ";
+					} else if ( inetAddress.isLinkLocalAddress( ) ) {
+						ipAddress = "LinkLocalAddress: ";
+					} else if ( inetAddress.isMulticastAddress( ) ) {
+						ipAddress = "MulticastAddress: ";
+					}
+					ip += ipAddress + inetAddress.getHostAddress( ) + "\n";
+				}
+
+			}
+
+		} catch ( SocketException e ) {
+			// TODO Auto-generated catch block
+			e.printStackTrace( );
+			ip += "Something Wrong! " + e.toString( ) + "\n";
+		}
+
+		return ip;
+	}
+
 	public static void main( String[] args ) {
 		NetInfo.wan( );
 	}
+	
+	
+	// TODO bonjour/zeroconf [3]
+	
+	
+	// References
+	// [1] source from http://android-er.blogspot.sg/2014/02/get-my-ip-address.html?m=1
+	// [2] oscP5, android, multicast http://forum.processing.org/one/topic/shy-oscp5-kissed-android-at-last-not-really-perfect.html
+	// [3] zeroconf on android http://android.noisepages.com/2010/02/yes-android-can-do-zeroconfbonjour-jmdns
+	// [4] network services with android http://developer.android.com/training/connect-devices-wirelessly/nsd.html
+	// [5] multicast on android http://stackoverflow.com/questions/3623143/multicast-on-android-2-2
+	// [6] oscP5  for android http://forum.processing.org/one/topic/oscp5-for-processing-android.html
+	
+	
+	
 }

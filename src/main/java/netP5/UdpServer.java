@@ -1,8 +1,8 @@
 /**
  * A network library for processing which supports UDP, TCP and Multicast.
- *
+ * 
  * ##copyright##
- *
+ * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
@@ -10,17 +10,17 @@
  * 
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
  * 
  * You should have received a copy of the GNU Lesser General
  * Public License along with this library; if not, write to the
  * Free Software Foundation, Inc., 59 Temple Place, Suite 330,
- * Boston, MA  02111-1307  USA
+ * Boston, MA 02111-1307 USA
  * 
- * @author		##author##
- * @modified	##date##
- * @version		##version##
+ * @author ##author##
+ * @modified ##date##
+ * @version ##version##
  */
 
 package netP5;
@@ -121,7 +121,7 @@ public final class UdpServer extends Observable implements Transmitter {
 		}
 
 		public void run( ) {
-			LOGGER.info( "starting server, listening on port " + port );
+
 			/* Create a selector to multiplex client connections. */
 
 			try {
@@ -131,7 +131,8 @@ public final class UdpServer extends Observable implements Transmitter {
 				InetSocketAddress isa = ( host == null ) ? new InetSocketAddress( port ) : new InetSocketAddress( host , port );
 				channel.socket( ).bind( isa );
 				channel.register( selector , SelectionKey.OP_READ , ByteBuffer.allocate( size ) );
-
+				LOGGER.info( "starting server, listening on port " + port + " (" + isa.getAddress( ).getHostAddress( ) + ":" + isa.getPort( ) + " " + isa.getAddress( ).getLocalHost( )+ ":" + isa.getPort( ) + ")" );
+				
 				/* Let's listen for incoming messages */
 				while ( !Thread.currentThread( ).isInterrupted( ) ) {
 					/* Wait for task or until timeout expires */
@@ -179,7 +180,8 @@ public final class UdpServer extends Observable implements Transmitter {
 					}
 				}
 			} catch ( IOException e ) {
-				e.printStackTrace( );
+				LOGGER.info( "Couldn't start UDP server on port " + port + " " + e +" Is there another application using the same port?");
+				// e.printStackTrace( );
 			}
 			LOGGER.info( "thread interrupted and closed." );
 		}

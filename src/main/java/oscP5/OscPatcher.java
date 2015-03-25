@@ -101,7 +101,7 @@ public abstract class OscPatcher {
 
 	}
 
-	protected void parseMessage( final byte[] theBytes ) {
+	public void parseMessage( final byte[] theBytes ) {
 
 		int myLength = theBytes.length;
 		int myIndex = 0;
