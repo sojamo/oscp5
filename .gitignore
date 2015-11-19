@@ -2,6 +2,7 @@ target/
 .classpath
 .project
 .settings/
+.externalToolBuilders/
 distribution/
 lib/
 data/
@@ -9,3 +10,4 @@ TODO
 NOTES
 bin/
 reference/
+materials/

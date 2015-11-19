@@ -35,31 +35,18 @@ import netP5.Bytes;
 public abstract class OscPatcher {
 
 	protected static final byte ZEROBYTE = 0x00;
-
 	protected static final byte KOMMA = 0x2c;
-
 	protected static final long TIMETAG_OFFSET = 2208988800L;
-
 	protected static final long TIEMTAG_NOW = 1;
-
 	protected List< OscMessage > messages;
-
 	protected byte[] _myAddrPattern;
-
 	protected int _myAddrInt = -1;
-
 	protected byte[] _myTypetag = new byte[ 0 ];
-
 	protected byte[] _myData = new byte[ 0 ];
-
 	protected Object[] _myArguments;
-
 	protected boolean isValid = false;
-
 	protected long timetag = 1;
-
 	protected boolean isArray = false;
-
 	protected byte _myArrayType = 0X00;
 
 	protected int parseBundle( Map m ) {
@@ -78,7 +65,8 @@ public abstract class OscPatcher {
 				m0.put( "socket-port" , m.get( "socket-port" ) );
 				m0.put( "local-port" , m.get( "local-port" ) );
 
-				messages.add( new OscMessage( m ) );
+				messages.add( new OscMessage( m0 ) );
+				
 				myPosition += myMessageLength;
 				if ( myPosition >= bytes.length ) {
 					break;

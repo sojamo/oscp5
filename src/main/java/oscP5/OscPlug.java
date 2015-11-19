@@ -10,17 +10,17 @@
  * 
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
  * 
  * You should have received a copy of the GNU Lesser General
  * Public License along with this library; if not, write to the
  * Free Software Foundation, Inc., 59 Temple Place, Suite 330,
- * Boston, MA  02111-1307  USA
+ * Boston, MA 02111-1307 USA
  * 
- * @author		##author##
- * @modified	##date##
- * @version		##version##
+ * @author ##author##
+ * @modified ##date##
+ * @version ##version##
  */
 
 package oscP5;
@@ -31,113 +31,70 @@ import java.util.logging.Logger;
 public class OscPlug {
 
 	private final static Logger LOGGER = Logger.getLogger( OscPlug.class.getName( ) );
-
 	private boolean _isValid = true;
-
 	private String _myTypetag = "";
-
 	private String _myAddrPattern = "";
-
 	private String _myPattern = "";
-
 	private String _myMethodName;
-
 	private Object _myObject;
-
 	public Method method = null;
-
 	private int _myChecker = 0;
-
 	protected boolean isArray = false;
-
 	private static final int CHECK_ADDRPATTERN_TYPETAG = 0;
-
 	private static final int CHECK_ADDRPATTERN = 1;
-
 	private static final int CHECK_TYPETAG = 2;
 
 	public void plug( final Object theObject , final String theMethodName , final String theAddrPattern ) {
-		
+
 		_myObject = theObject;
-		
 		_myMethodName = theMethodName;
-		
 		_myAddrPattern = theAddrPattern;
-		
 		_myChecker = CHECK_ADDRPATTERN_TYPETAG;
-		
+
 		if ( _myMethodName != null && _myMethodName.length( ) > 0 ) {
-			
+
 			Class< ? > myClass = theObject.getClass( );
-			
 			Class< ? >[] myParams = null;
-			
 			Method[] myMethods = myClass.getMethods( );
-			
 			_myTypetag = "";
-			
+
 			for ( int i = 0 ; i < myMethods.length ; i++ ) {
-				
 				if ( ( myMethods[ i ].getName( ) ).equals( _myMethodName ) ) {
-					
 					myParams = myMethods[ i ].getParameterTypes( );
-					
 					for ( int j = 0 ; j < myParams.length ; j++ ) {
-						
 						_myTypetag += checkType( myParams[ j ].getName( ) );
-						
 					}
-					
 					break;
-					
 				}
 			}
+
 			if ( myParams != null ) {
-				
 				makeMethod( theObject.getClass( ) , myParams );
-				
 			} else {
-				
 				LOGGER.warning( "OscPlug, no arguments found for method " + _myMethodName );
-				
 			}
 		}
 	}
 
 	public void plug( final Object theObject , final String theMethodName , final String theAddrPattern , final String theTypetag ) {
-		
+
 		_myObject = theObject;
-		
 		_myMethodName = theMethodName;
-		
 		_myAddrPattern = theAddrPattern;
-		
 		_myTypetag = theTypetag;
-		
 		_myChecker = CHECK_ADDRPATTERN_TYPETAG;
 
 		if ( _myMethodName != null && _myMethodName.length( ) > 0 ) {
-			
 			int tLen = _myTypetag.length( );
-			
 			Class< ? >[] myParams;
-			
 			if ( tLen > 0 ) {
-				
 				myParams = getArgs( _myTypetag );
-				
 			} else {
-				
 				myParams = null;
-				
 			}
-
 			if ( _isValid ) {
-				
 				makeMethod( theObject.getClass( ) , myParams );
-				
 			}
-			
 		}
 	}
 
@@ -146,72 +103,48 @@ public class OscPlug {
 	}
 
 	private void makeMethod( final Class< ? > theObjectsClass , final Class< ? >[] theClass ) {
-		
-		try {
-			
-			method = theObjectsClass.getDeclaredMethod( _myMethodName , theClass );
-			
-			_myPattern = _myAddrPattern + _myTypetag;
-			
-			method.setAccessible( true );
-			
-			LOGGER.finest( "plugging " + theObjectsClass + " | " + "addrPattern:" + _myAddrPattern + " typetag:" + _myTypetag + " method:" + _myMethodName );
 
+		try {
+
+			method = theObjectsClass.getDeclaredMethod( _myMethodName , theClass );
+			_myPattern = _myAddrPattern + _myTypetag;
+			method.setAccessible( true );
+			LOGGER.finest( "plugging " + theObjectsClass + " | " + "addrPattern:" + _myAddrPattern + " typetag:" + _myTypetag + " method:" + _myMethodName );
 		} catch ( Exception e ) {
-			
 			final Class< ? > theObjecsSuperClass = theObjectsClass.getSuperclass( );
-			
 			if ( theObjecsSuperClass.equals( Object.class ) ) {
-				
 				if ( theObjectsClass.getName( ).equals( "java.awt.Component" ) == false ) {
-					
 					LOGGER.warning( "OscPlug, method " + theObjectsClass.getName( ) + " does not exist in your code." );
-					
 				}
 			} else {
-				
 				makeMethod( theObjecsSuperClass , theClass );
-				
 			}
 		}
 		return;
 	}
 
 	public boolean checkMethod( final OscMessage theOscMessage , final boolean isArray ) {
-		
+
 		String myTypetag;
-		
+
 		/* if theFlag is true and the arguments of theOscmessage can be represented as an array of
 		 * the same type, then only fetch the first character of the typetag, otherwise use the full
 		 * typetag. */
-		
+
 		if ( isArray ) {
-			
-			myTypetag = "" + theOscMessage.typetag( ).charAt( 0 );
-			
+			myTypetag = "" + theOscMessage.getTypetag( ).charAt( 0 );
 		} else {
-			
-			myTypetag = theOscMessage.typetag( );
-			
+			myTypetag = theOscMessage.getTypetag( );
 		}
 		switch ( _myChecker ) {
-		
 		case ( CHECK_ADDRPATTERN_TYPETAG ):
-			
 			String thePattern = theOscMessage.addrPattern( ) + myTypetag;
-		
 			return thePattern.equals( _myPattern );
-			
 		case ( CHECK_ADDRPATTERN ):
-			
 			return ( theOscMessage.addrPattern( ).equals( _myAddrPattern ) );
-		
 		case ( CHECK_TYPETAG ):
-			
 			return ( myTypetag.equals( _myTypetag ) );
-		
 		default:
-			
 			return false;
 		}
 	}

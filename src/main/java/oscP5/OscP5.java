@@ -81,6 +81,7 @@ import netP5.UdpServer;
  */
 public class OscP5 implements Observer {
 
+	static public boolean DEBUG = false;
 	final static Logger LOGGER = Logger.getLogger( OscP5.class.getName( ) );
 	protected Map< String , List< OscPlug >> _myOscPlugMap = new HashMap< String , List< OscPlug >>( );
 	public final static boolean ON = OscProperties.ON;
@@ -97,10 +98,12 @@ public class OscP5 implements Observer {
 
 	private OscProperties _myOscProperties;
 	private Method _myEventMethod;
+	private Method _myPacketMethod;
 	private Class< ? > _myEventClass = OscMessage.class;
 	private boolean isEventMethod;
+	private boolean isPacketMethod;
 	private boolean isBroadcast = false;
-	public static final String VERSION = "2.0.3";
+	public static final String VERSION = "2.0.4";
 	static private int welcome = 0;
 	private Transmitter transmit;
 	private Object parent;
@@ -138,10 +141,17 @@ public class OscP5 implements Observer {
 	private void init( Object theParent , OscProperties theProperties ) {
 
 		welcome( );
+
 		parent = ( theParent == null ) ? new Object( ) : theParent;
 		registerDispose( parent );
 		_myOscProperties = theProperties;
-		isEventMethod = checkEventMethod( );
+
+		_myEventMethod = checkEventMethod( parent , "oscEvent" , new Class< ? >[] { OscMessage.class } );
+		_myPacketMethod = checkEventMethod( parent , "oscEvent" , new Class< ? >[] { OscBundle.class } );
+		isEventMethod = _myEventMethod != null;
+		isPacketMethod = _myPacketMethod != null;
+
+		println( _myEventMethod , isEventMethod , "\n" , _myPacketMethod , isPacketMethod );
 
 		switch ( _myOscProperties.networkProtocol( ) ) {
 		case ( OscProperties.UDP ):
@@ -213,8 +223,9 @@ public class OscP5 implements Observer {
 	}
 
 	/**
-	 * In case the parent is of type PApplet, register "dispose". Do so quietly, no error messages
-	 * will be displayed.
+	 * Check if we are dealing with a PApplet parent.
+	 * If this is the case, register "dispose". 
+	 * Do so quietly, no error messages will be displayed.
 	 */
 	private void registerDispose( Object theObject ) {
 		try {
@@ -231,8 +242,7 @@ public class OscP5 implements Observer {
 					parent = theObject;
 				}
 			} catch ( Exception e ) {
-				System.out.println( "registerDispose failed (1)" );
-				// e.printStackTrace( );
+				debug( "OscP5.registerDispose()" , "registerDispose failed (1)" , e.getCause( ) );
 			}
 
 			try {
@@ -240,63 +250,26 @@ public class OscP5 implements Observer {
 				try {
 					method.invoke( parent , new Object[] { "dispose" , this } );
 				} catch ( Exception e ) {
-					System.out.println( "registerDispose failed (2)" );
-					// e.printStackTrace( );
+					debug( "OscP5.registerDispose()" , "registerDispose failed (2)" , e.getCause( ) );
 				}
 
 			} catch ( NoSuchMethodException e ) {
-				System.out.println( "registerDispose failed (3)" );
-				// e.printStackTrace( );
+				debug( "OscP5.registerDispose()" , "registerDispose failed (3)" , e.getCause( ) );
 			}
 
 		} catch ( NullPointerException e ) {
-			System.out.println( "registerDispose failed (4)" );
-			// e.printStackTrace( );
+			debug( "OscP5.registerDispose()" , "registerDispose failed (4)" , e.getCause( ) );
 		}
 	}
 
-	private boolean checkEventMethod( ) {
-
-		Class< ? > _myParentClass = parent.getClass( );
-
+	private Method checkEventMethod( Object theObject , String theMethod , Class< ? >[] theClass ) {
+		Method method = null;
 		try {
+			method = theObject.getClass( ).getDeclaredMethod( theMethod , theClass );
+			method.setAccessible( true );
+		} catch ( SecurityException e1 ) {} catch ( NoSuchMethodException e1 ) {}
 
-			Method[] myMethods = _myParentClass.getDeclaredMethods( );
-
-			for ( int i = 0 ; i < myMethods.length ; i++ ) {
-				if ( myMethods[ i ].getName( ).indexOf( _myOscProperties.eventMethod( ) ) != -1 ) {
-					Class< ? >[] myClasses = myMethods[ i ].getParameterTypes( );
-					if ( myClasses.length == 1 ) {
-						_myEventClass = myClasses[ 0 ];
-						break;
-					}
-				}
-			}
-
-		} catch ( Throwable e ) {
-
-		}
-
-		String tMethod = _myOscProperties.eventMethod( );
-
-		if ( tMethod != null ) {
-
-			try {
-
-				Class< ? >[] tClass = { _myEventClass };
-				_myEventMethod = _myParentClass.getDeclaredMethod( tMethod , tClass );
-				_myEventMethod.setAccessible( true );
-				return true;
-
-			} catch ( SecurityException e1 ) {
-				LOGGER.warning( "### security issues in OscP5.checkEventMethod(). (this occures when running in applet mode)" );
-			} catch ( NoSuchMethodException e1 ) {}
-		}
-
-		if ( _myEventMethod != null ) {
-			return true;
-		}
-		return false;
+		return method;
 	}
 
 	public static void flush( final NetAddress theNetAddress , final byte[] theBytes ) {
@@ -385,7 +358,6 @@ public class OscP5 implements Observer {
 					}
 				}
 			}
-
 		}
 
 		if ( _myOscPlugMap.containsKey( theOscMessage.getAddress( ) ) ) {
@@ -433,12 +405,17 @@ public class OscP5 implements Observer {
 	}
 
 	private void process( OscPacket thePacket ) {
+		/* TODO add raw packet listener here */
 		if ( thePacket instanceof OscMessage ) {
 			callMethod( ( OscMessage ) thePacket );
 		} else if ( thePacket instanceof OscBundle ) {
-			OscBundle bundle = ( OscBundle ) thePacket;
-			for ( OscPacket p : bundle.messages ) {
-				process( p );
+			if ( isPacketMethod ) {
+				invoke( parent , _myPacketMethod , new Object[] { thePacket } );
+			} else {
+				OscBundle bundle = ( OscBundle ) thePacket;
+				for ( OscPacket p : bundle.messages ) {
+					process( p );
+				}
 			}
 		}
 	}
@@ -622,6 +599,29 @@ public class OscP5 implements Observer {
 
 	public static void flush( final NetAddress theNetAddress , final String theAddrPattern , final Object ... theArguments ) {
 		flush( theNetAddress , ( new OscMessage( theAddrPattern , theArguments ) ).getBytes( ) );
+	}
+
+	static public void print( final Object ... strs ) {
+		for ( Object str : strs ) {
+			System.out.print( str + " " );
+		}
+	}
+
+	static public void println( final Object ... strs ) {
+		print( strs );
+		System.out.println( );
+	}
+
+	static public void debug( final Object ... strs ) {
+		if ( DEBUG ) {
+			println( strs );
+		}
+	}
+
+	static public void sleep( final long theMillis ) {
+		try {
+			Thread.sleep( theMillis );
+		} catch ( Exception e ) {}
 	}
 
 	/* DEPRECATED methods and constructors. */

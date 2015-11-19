@@ -10,22 +10,23 @@
  * 
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
  * 
  * You should have received a copy of the GNU Lesser General
  * Public License along with this library; if not, write to the
  * Free Software Foundation, Inc., 59 Temple Place, Suite 330,
- * Boston, MA  02111-1307  USA
+ * Boston, MA 02111-1307 USA
  * 
- * @author		##author##
- * @modified	##date##
- * @version		##version##
+ * @author ##author##
+ * @modified ##date##
+ * @version ##version##
  */
 
 package oscP5;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 import netP5.Bytes;
@@ -37,9 +38,7 @@ import netP5.Bytes;
 public class OscBundle extends OscPacket {
 
 	protected static final int BUNDLE_HEADER_SIZE = 16;
-
 	protected static final byte[] BUNDLE_AS_BYTES = { 0x23 , 0x62 , 0x75 , 0x6E , 0x64 , 0x6C , 0x65 , 0x00 };
-
 	private int _myMessageSize = 0;
 
 	public OscBundle( ) {
@@ -48,6 +47,10 @@ public class OscBundle extends OscPacket {
 
 	OscBundle( Map m ) {
 		_myMessageSize = parseBundle( m );
+		_myRef = m.get( "socket-ref" );
+		hostAddress = s( m.get( "socket-address" ) , null );
+		port = i( m.get( "socket-port" ) , 0 );
+		localPort = i( m.get( "local-port" ) , 0 );
 	}
 
 	public OscBundle add( OscMessage ... theOscMessages ) {
@@ -82,6 +85,17 @@ public class OscBundle extends OscPacket {
 		return _myMessageSize;
 	}
 
+	public OscMessage get( int theIndex ) {
+		if ( theIndex < 0 || theIndex >= size( ) ) {
+			return null;
+		}
+		return messages.get( theIndex );
+	}
+
+	public List< OscMessage > get( ) {
+		return messages;
+	}
+
 	/**
 	 * TODO set the timetag of an osc bundle. timetags are used to synchronize events and execute
 	 * events at a given time in the future or immediately. timetags can only be set for osc
@@ -114,5 +128,9 @@ public class OscBundle extends OscPacket {
 			myBytes = Bytes.append( myBytes , tBytes );
 		}
 		return myBytes;
+	}
+
+	public final String toString( ) {
+		return String.format( "OscBundle{hostAddress=%s, port=%s, messages=%s}" , hostAddress , port , size( ) );
 	}
 }

@@ -1,4 +1,4 @@
-How to install library ##library.name##
+How to install library oscP5
 
 
 Install with the "Add Library..." tool
@@ -26,19 +26,19 @@ By default the following locations are used for your sketchbook folder:
   For Windows users, the sketchbook folder is located inside 
     'My Documents'/Processing.
 
-The folder structure for library ##library.name## should be as follows:
+The folder structure for library oscP5 should be as follows:
 
 Processing
   libraries
-    ##library.name##
+    oscP5
       examples
       library
-        ##library.name##.jar
+        oscP5.jar
       reference
       src
                       
 Some folders like "examples" or "src" might be missing. After library 
-##library.name## has been successfully installed, restart the Processing 
+oscP5 has been successfully installed, restart the Processing 
 application.
 
 

@@ -45,11 +45,11 @@
 	<property name="author"                     value="Andreas Schlegel"/>	
 	<property name="copyright"                  value="(c) 2004-2015"/>
 	<property name="libraryName"                value="oscP5"/>
-	<property name="versionNumber"              value="2.0.3"/>
+	<property name="versionNumber"              value="2.0.4"/>
 	<property name="yourLink"                   value="http://www.sojamo.de" />
 	<property name="keywords"                   value="osc,networking" />
 	<property name="tested:platform"            value="osx, windows, linux" />
-	<property name="tested:processingVersion"  	value="2.2.1" />	
+	<property name="tested:processingVersion"  	value="3.0.1" />	
 	<property name="tested:dependencies"        value="none" />
 	<property name="source:host"                value="github" />
 	<property name="source:url"                 value="https://github.com/sojamo/oscp5" />
@@ -180,24 +180,24 @@
   		</copy> 
 
   	<mkdir dir="${dist}/${libraryName}-${versionNumber}" />
-  	<mkdir dir="${dist}/${libraryName}-${versionNumber}/controlP5" />
-  	<mkdir dir="${dist}/${libraryName}-${versionNumber}/controlP5/src" />
-  	<mkdir dir="${dist}/${libraryName}-${versionNumber}/controlP5/examples" />
-  	<mkdir dir="${dist}/${libraryName}-${versionNumber}/controlP5/reference" />
-  	<mkdir dir="${dist}/${libraryName}-${versionNumber}/controlP5/library" />
+  	<mkdir dir="${dist}/${libraryName}-${versionNumber}/oscP5" />
+  	<mkdir dir="${dist}/${libraryName}-${versionNumber}/oscP5/src" />
+  	<mkdir dir="${dist}/${libraryName}-${versionNumber}/oscP5/examples" />
+  	<mkdir dir="${dist}/${libraryName}-${versionNumber}/oscP5/reference" />
+  	<mkdir dir="${dist}/${libraryName}-${versionNumber}/oscP5/library" />
   	<mkdir dir="${dist}/tmp" />
 	<mkdir dir="${dist}/tmp/${libraryName}" />
 
-  	<copy todir="${dist}/${libraryName}-${versionNumber}/controlP5/src"><fileset dir="${dist}/src"/></copy>
-  	<copy todir="${dist}/${libraryName}-${versionNumber}/controlP5/examples"><fileset dir="${dist}/examples"/></copy>
-  	<copy todir="${dist}/${libraryName}-${versionNumber}/controlP5/reference"><fileset dir="${dist}/reference"/></copy>
-  	<copy todir="${dist}/${libraryName}-${versionNumber}/controlP5/library"><fileset dir="${dist}/library"/></copy>
+  	<copy todir="${dist}/${libraryName}-${versionNumber}/oscP5/src"><fileset dir="${dist}/src"/></copy>
+  	<copy todir="${dist}/${libraryName}-${versionNumber}/oscP5/examples"><fileset dir="${dist}/examples"/></copy>
+  	<copy todir="${dist}/${libraryName}-${versionNumber}/oscP5/reference"><fileset dir="${dist}/reference"/></copy>
+  	<copy todir="${dist}/${libraryName}-${versionNumber}/oscP5/library"><fileset dir="${dist}/library"/></copy>
     
   	<copyfile src="${resources}/install_instructions.txt" dest="${dist}/tmp/install_instructions.txt"/>
-    <copyfile src="${resources}/library.properties" dest="${dist}/tmp/controlP5/library.properties"/>
+    <copyfile src="${resources}/library.properties" dest="${dist}/tmp/oscP5/library.properties"/>
 
   	<move todir="${dist}/tmp/${libraryName}">
-  		<fileset dir="${dist}/${libraryName}-${versionNumber}/controlP5" />
+  		<fileset dir="${dist}/${libraryName}-${versionNumber}/oscP5" />
   	</move>
 
   	<!-- zip the distribution of the library -->

@@ -10,17 +10,17 @@
  * 
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
  * 
  * You should have received a copy of the GNU Lesser General
  * Public License along with this library; if not, write to the
  * Free Software Foundation, Inc., 59 Temple Place, Suite 330,
- * Boston, MA  02111-1307  USA
+ * Boston, MA 02111-1307 USA
  * 
- * @author		##author##
- * @modified	##date##
- * @version		##version##
+ * @author ##author##
+ * @modified ##date##
+ * @version ##version##
  */
 
 package oscP5;
@@ -38,7 +38,6 @@ import netP5.Bytes;
 public class OscMessage extends OscPacket {
 
 	protected final OscArgument _myOscArgument = new OscArgument( );
-
 	protected boolean isPlugged = false;
 
 	OscMessage( Map m ) {
@@ -94,7 +93,7 @@ public class OscMessage extends OscPacket {
 		init( );
 		setAddress( "" );
 		setArguments( new Object[ 0 ] );
-	return this;
+		return this;
 	}
 
 	public OscMessage clearArguments( ) {
@@ -320,7 +319,7 @@ public class OscMessage extends OscPacket {
 		add( theValue.doubleValue( ) );
 		return this;
 	}
-	
+
 	public OscMessage add( final Long theValue ) {
 		add( theValue.longValue( ) );
 		return this;
@@ -471,7 +470,17 @@ public class OscMessage extends OscPacket {
 	}
 
 	public final String toString( ) {
-		return hostAddress + ":" + port + " | " + getAddress( ) + " " + getTypetag( );
+		return String.format( "OscMessage{hostAddress=%s, port=%s, address=%s, typetag=%s, data-size=%s, data=%s}" , hostAddress , port , getAddress( ) , getTypetag( ) , getArguments( ).length , arrayToString( getArguments( ) ) );
+	}
+
+	private final String arrayToString( Object[] os ) {
+		String s = "[";
+		for ( Object o : os ) {
+			s += o.toString( ) + ",";
+		}
+		s = s.replaceAll( ",$" , "" );
+		s += "]";
+		return s;
 	}
 
 	public boolean isPlugged( ) {
@@ -604,43 +613,35 @@ public class OscMessage extends OscPacket {
 
 	/* Deprecated methods */
 
-	@Deprecated
-	public void setAddrPattern( final String theAddrPattern ) {
+	@Deprecated public void setAddrPattern( final String theAddrPattern ) {
 		_myAddrPattern = theAddrPattern.getBytes( );
 	}
 
-	@Deprecated
-	public void setAddrPattern( final int theAddrPattern ) {
+	@Deprecated public void setAddrPattern( final int theAddrPattern ) {
 		_myAddrPattern = Bytes.toBytes( theAddrPattern );
 	}
 
-	@Deprecated
-	public boolean checkAddrPattern( final String theAddrPattern ) {
+	@Deprecated public boolean checkAddrPattern( final String theAddrPattern ) {
 		return theAddrPattern.equals( addrPattern( ) );
 	}
 
-	@Deprecated
-	public String typetag( ) {
+	@Deprecated public String typetag( ) {
 		return Bytes.getAsString( _myTypetag );
 	}
 
-	@Deprecated
-	public long timetag( ) {
+	@Deprecated public long timetag( ) {
 		return timetag;
 	}
 
-	@Deprecated
-	public Object[] arguments( ) {
+	@Deprecated public Object[] arguments( ) {
 		return _myArguments;
 	}
 
-	@Deprecated
-	public OscMessage addArguments( final Object ... theArguments ) {
+	@Deprecated public OscMessage addArguments( final Object ... theArguments ) {
 		return add( theArguments );
 	}
 
-	@Deprecated
-	public String addrPattern( ) {
+	@Deprecated public String addrPattern( ) {
 		return Bytes.getAsString( _myAddrPattern );
 	}
 
