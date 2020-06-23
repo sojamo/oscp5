@@ -1,3 +1,11 @@
+
+.DS_Store
+build/
+bin/
+NOTES.md
+.gradle
+
+
 target/
 .classpath
 .project
@@ -11,3 +19,4 @@ NOTES
 bin/
 reference/
 materials/
+
