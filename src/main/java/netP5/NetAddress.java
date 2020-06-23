@@ -31,62 +31,50 @@ import java.net.UnknownHostException;
 public class NetAddress {
 
 	protected InetAddress inetaddress = null;
-
 	protected String hostAddress;
-
 	public String name = "";
-
 	protected int port = 0;
-
 	protected boolean isValid = false;
 
-	private NetAddress( ) {
+	private NetAddress() {
 	}
 
-	public NetAddress( final int thePort ) {
-		this( "127.0.0.1" , thePort );
+	public NetAddress(final int thePort) {
+		this("127.0.0.1", thePort); /** TODO allow custom inet here */
 	}
 
-	public NetAddress( final String theAddress , final int thePort ) {
-		hostAddress = theAddress;
-		port = thePort;
-		if ( thePort > 0 ) {
-			try {
-				inetaddress = InetAddress.getByName( theAddress );
-				isValid = true;
-			} catch ( UnknownHostException e ) {
-				System.out.println( "no such host " + inetaddress );
-			}
-		}
+	public NetAddress(final String theAddress, final int thePort) {
+		/** TODO re-implement */
 	}
 
-	public NetAddress( NetAddress theNetAddress ) {
-		this( theNetAddress.address( ) , theNetAddress.port( ) );
+	public NetAddress(final NetAddress theNetAddress) {
+		/** TODO re-implement */
 	}
 
-	public NetAddress( InetAddress theInetAddress , int thePort ) {
-		inetaddress = theInetAddress;
-		hostAddress = inetaddress.getHostAddress( );
-		port = thePort;
+	public NetAddress(final InetAddress theInetAddress, final int thePort) {
+		/** TODO re-implement */
 	}
 
-	public InetAddress inetaddress( ) {
-		return inetaddress;
+	public InetAddress inetaddress() {
+		/** TODO re-implement */
+		return null;
 	}
 
-	public String address( ) {
-		return hostAddress;
+	public String address() {
+		/** TODO re-implement */
+		return null;
 	}
 
-	public int port( ) {
+	public int port() {
 		return port;
 	}
 
-	public boolean isvalid( ) {
+	public boolean isvalid() {
 		return isValid;
 	}
 
-	public String toString( ) {
-		return hostAddress + ":" + port;
+	public String toString() {
+		/** TODO re-implement */
+		return null;
 	}
 }

@@ -43,79 +43,69 @@ import java.util.logging.Logger;
 
 public class NetInfo {
 
-	private final static Logger LOGGER = Logger.getLogger( NetInfo.class.getName( ) );
+	private final static Logger LOGGER = Logger.getLogger(NetInfo.class.getName());
 
-	public NetInfo( ) {
+	public NetInfo() {
 	}
 
-	public static void print( ) {
-		try {
-			java.net.InetAddress i1 = java.net.InetAddress.getLocalHost( );
-			System.out.println( "### hostname/ip : " + i1 ); // name and IP address
-			System.out.println( "### hostname : " + i1.getHostName( ) ); // name
-			System.out.println( "### ip : " + i1.getHostAddress( ) ); // IP address
-			// only
-		} catch ( Exception e ) {
-			e.printStackTrace( );
-		}
+	public static void print() {
+		/** TODO re-implement */
 	}
 
-	public static String getHostAddress( ) {
-		try {
-			java.net.InetAddress i = java.net.InetAddress.getLocalHost( );
-			return i.getHostAddress( );
-		} catch ( Exception e ) {}
-		return "ERROR";
+	public static String getHostAddress() {
+		/** TODO re-implement */
+		return null;
 	}
 
-	public static String lan( ) {
-		LOGGER.info( "host address : " + getHostAddress( ) );
-		return getHostAddress( );
+	public static String lan() {
+		/** TODO re-implement */
+		return null;
 	}
 
-	public static String wan( ) {
-		// create URL object.
+	public static String wan() {
+		/** TODO re-implement */
 		String myIp = null;
 		URL u = null;
-		String URLstring = "http://checkip.dyndns.org";
+		final String URLstring = "http://checkip.dyndns.org";
 		boolean isConnectedToInternet = false;
-		LOGGER.info( "Checking internet  connection ..." );
+		LOGGER.info("Checking internet  connection ...");
 		try {
-			u = new URL( URLstring );
-		} catch ( MalformedURLException e ) {
-			LOGGER.warning( "Bad URL " + URLstring + " " + e );
+			u = new URL(URLstring);
+		} catch (final MalformedURLException e) {
+			LOGGER.warning("Bad URL " + URLstring + " " + e);
 		}
 
 		InputStream in = null;
 		try {
-			in = u.openStream( );
+			in = u.openStream();
 			isConnectedToInternet = true;
-		} catch ( IOException e ) {
-			LOGGER.warning( "Unable to open  " + URLstring + "\n" + "Either the  " + URLstring + " is unavailable or this machine  is not" + "connected to the internet !" );
+		} catch (final IOException e) {
+			LOGGER.warning("Unable to open  " + URLstring + "\n" + "Either the  " + URLstring
+					+ " is unavailable or this machine  is not" + "connected to the internet !");
 		}
 
-		if ( isConnectedToInternet ) {
+		if (isConnectedToInternet) {
 			try {
-				BufferedReader br = new BufferedReader( new InputStreamReader( in ) );
+				final BufferedReader br = new BufferedReader(new InputStreamReader(in));
 				String line;
 				String theToken = "";
-				while ( ( line = br.readLine( ) ) != null ) {
+				while ((line = br.readLine()) != null) {
 					theToken += line;
 				}
-				br.close( );
+				br.close();
 
-				StringTokenizer st = new StringTokenizer( theToken , " <>" , false );
+				final StringTokenizer st = new StringTokenizer(theToken, " <>", false);
 
-				while ( st.hasMoreTokens( ) ) {
-					String myToken = st.nextToken( );
-					if ( myToken.compareTo( "Address:" ) == 0 ) {
-						myToken = st.nextToken( );
+				while (st.hasMoreTokens()) {
+					String myToken = st.nextToken();
+					if (myToken.compareTo("Address:") == 0) {
+						myToken = st.nextToken();
 						myIp = myToken;
-						LOGGER.info( "WAN address : " + myIp );
+						LOGGER.info("WAN address : " + myIp);
 					}
 				}
-			} catch ( IOException e ) {
-				LOGGER.warning( "I/O error reading  " + URLstring + " Exception = " + e );
+			} catch (final IOException e) {
+				LOGGER.warning("I/O error reading  " + URLstring + " Exception = " + e);
 			}
 		}
 		return myIp;
@@ -123,88 +113,75 @@ public class NetInfo {
 
 	/**
 	 * 
-	 * returns a map of available network interfaces. this map's keys use the network interface's
-	 * name as identifier. Each value is a map with the following keys: name (eg en0, eth0, lo0),
-	 * display-name (en0, Wireless Network Connection, Loopback), mac (the device's MAC address as
-	 * byte-array), inet-address (java.net.InetAddress see javadoc)and network-interface (the raw
+	 * returns a map of available network interfaces. this map's keys use the
+	 * network interface's name as identifier. Each value is a map with the
+	 * following keys: name (eg en0, eth0, lo0), display-name (en0, Wireless Network
+	 * Connection, Loopback), mac (the device's MAC address as byte-array),
+	 * inet-address (java.net.InetAddress see javadoc)and network-interface (the raw
 	 * java.net.NetworkInterface object, see javadoc).
 	 */
-	static public Map< String , Map > getNetworkInterfaces( ) {
-		Map< String , Map > m = new HashMap< String , Map >( );
-		Enumeration< NetworkInterface > nets;
+	static public Map<String, Map> getNetworkInterfaces() {
+		final Map<String, Map> m = new HashMap<String, Map>();
+		Enumeration<NetworkInterface> nets;
 		try {
-			nets = NetworkInterface.getNetworkInterfaces( );
-			for ( NetworkInterface netint : Collections.list( nets ) ) {
-				Map< String , Object > m1 = new HashMap< String , Object >( );
-				m.put( netint.getDisplayName( ) , m1 );
-				m1.put( "name" , netint.getName( ) );
-				m1.put( "display-name" , netint.getDisplayName( ) );
-				m1.put( "mac" , netint.getHardwareAddress( ) );
-				m1.put( "network-interface" , netint );
-				Enumeration< InetAddress > inetAddresses = netint.getInetAddresses( );
-				for ( InetAddress inetAddress : Collections.list( inetAddresses ) ) {
-					m1.put( "inet-address" , inetAddress );
+			nets = NetworkInterface.getNetworkInterfaces();
+			for (final NetworkInterface netint : Collections.list(nets)) {
+				final Map<String, Object> m1 = new HashMap<String, Object>();
+				m.put(netint.getDisplayName(), m1);
+				m1.put("name", netint.getName());
+				m1.put("display-name", netint.getDisplayName());
+				m1.put("mac", netint.getHardwareAddress());
+				m1.put("network-interface", netint);
+				final Enumeration<InetAddress> inetAddresses = netint.getInetAddresses();
+				for (final InetAddress inetAddress : Collections.list(inetAddresses)) {
+					m1.put("inet-address", inetAddress);
 				}
 
 			}
-		} catch ( SocketException e ) {
-			e.printStackTrace( );
+		} catch (final SocketException e) {
+			e.printStackTrace();
 		}
 
 		return m;
 	}
 
-	static public String getIpAddress( ) {
-		// see [1]
+	static public String getIpAddress() {
+		/** TODO re-implement */
 		String ip = "";
 		try {
-			Enumeration< NetworkInterface > enumNetworkInterfaces = NetworkInterface.getNetworkInterfaces( );
-			while ( enumNetworkInterfaces.hasMoreElements( ) ) {
-				NetworkInterface networkInterface = enumNetworkInterfaces.nextElement( );
-				Enumeration< InetAddress > enumInetAddress = networkInterface.getInetAddresses( );
-				while ( enumInetAddress.hasMoreElements( ) ) {
-					InetAddress inetAddress = enumInetAddress.nextElement( );
+			final Enumeration<NetworkInterface> enumNetworkInterfaces = NetworkInterface.getNetworkInterfaces();
+			while (enumNetworkInterfaces.hasMoreElements()) {
+				final NetworkInterface networkInterface = enumNetworkInterfaces.nextElement();
+				final Enumeration<InetAddress> enumInetAddress = networkInterface.getInetAddresses();
+				while (enumInetAddress.hasMoreElements()) {
+					final InetAddress inetAddress = enumInetAddress.nextElement();
 
 					String ipAddress = "";
-					if ( inetAddress.isLoopbackAddress( ) ) {
+					if (inetAddress.isLoopbackAddress()) {
 						ipAddress = "LoopbackAddress: ";
-					} else if ( inetAddress.isSiteLocalAddress( ) ) {
+					} else if (inetAddress.isSiteLocalAddress()) {
 						ipAddress = "SiteLocalAddress: ";
-					} else if ( inetAddress.isLinkLocalAddress( ) ) {
+					} else if (inetAddress.isLinkLocalAddress()) {
 						ipAddress = "LinkLocalAddress: ";
-					} else if ( inetAddress.isMulticastAddress( ) ) {
+					} else if (inetAddress.isMulticastAddress()) {
 						ipAddress = "MulticastAddress: ";
 					}
-					ip += ipAddress + inetAddress.getHostAddress( ) + "\n";
+					ip += ipAddress + inetAddress.getHostAddress() + "\n";
 				}
 
 			}
 
-		} catch ( SocketException e ) {
-			// TODO Auto-generated catch block
-			e.printStackTrace( );
-			ip += "Something Wrong! " + e.toString( ) + "\n";
+		} catch (final SocketException e) {
+			/** TODO Auto-generated catch block */
+			e.printStackTrace();
+			ip += "Something Wrong! " + e.toString() + "\n";
 		}
 
 		return ip;
 	}
 
-	public static void main( String[] args ) {
-		NetInfo.wan( );
+	public static void main(final String[] args) {
+		NetInfo.wan();
 	}
-	
-	
-	// TODO bonjour/zeroconf [3]
-	
-	
-	// References
-	// [1] source from http://android-er.blogspot.sg/2014/02/get-my-ip-address.html?m=1
-	// [2] oscP5, android, multicast http://forum.processing.org/one/topic/shy-oscp5-kissed-android-at-last-not-really-perfect.html
-	// [3] zeroconf on android http://android.noisepages.com/2010/02/yes-android-can-do-zeroconfbonjour-jmdns
-	// [4] network services with android http://developer.android.com/training/connect-devices-wirelessly/nsd.html
-	// [5] multicast on android http://stackoverflow.com/questions/3623143/multicast-on-android-2-2
-	// [6] oscP5  for android http://forum.processing.org/one/topic/oscp5-for-processing-android.html
-	
-	
-	
+
 }

@@ -29,59 +29,59 @@ public final class OscArgument {
 
 	private Object value;
 
-	OscArgument( ) {
+	OscArgument() {
 	}
 
-	public int intValue( ) {
-		return ( ( Integer ) value ).intValue( );
+	public int intValue() {
+		return ((Integer) value).intValue();
 	}
 
-	public char charValue( ) {
-		return ( ( Character ) value ).charValue( );
+	public char charValue() {
+		return ((Character) value).charValue();
 	}
 
-	public float floatValue( ) {
-		return ( ( Float ) value ).floatValue( );
+	public float floatValue() {
+		return ((Float) value).floatValue();
 	}
 
-	public double doubleValue( ) {
-		return ( ( Double ) value ).doubleValue( );
+	public double doubleValue() {
+		return ((Double) value).doubleValue();
 	}
 
-	public long longValue( ) {
-		return ( ( Long ) value ).longValue( );
+	public long longValue() {
+		return ((Long) value).longValue();
 	}
 
-	public boolean booleanValue( ) {
-		return ( ( Boolean ) value ).booleanValue( );
+	public boolean booleanValue() {
+		return ((Boolean) value).booleanValue();
 	}
 
-	public String stringValue( ) {
-		return ( ( String ) value );
+	public String stringValue() {
+		return ((String) value);
 	}
 
-	public String toString( ) {
-		return ( ( String ) value );
+	public String toString() {
+		return ((String) value);
 	}
 
-	public byte[] bytesValue( ) {
-		return ( ( byte[] ) value );
+	public byte[] bytesValue() {
+		return ((byte[]) value);
 	}
 
-	public byte[] blobValue( ) {
-		return ( ( byte[] ) value );
+	public byte[] blobValue() {
+		return ((byte[]) value);
 	}
 
-	public int[] midiValue( ) {
-		int[] myInt = new int[ 4 ];
-		byte[] myByte = ( byte[] ) value;
-		for ( int i = 0 ; i < 4 ; i++ ) {
-			myInt[ i ] = ( int ) ( myByte[ i ] );
+	public int[] midiValue() {
+		final int[] myInt = new int[4];
+		final byte[] myByte = (byte[]) value;
+		for (int i = 0; i < 4; i++) {
+			myInt[i] = (int) (myByte[i]);
 		}
-		return ( myInt );
+		return (myInt);
 	}
 
-	void setValue( Object theValue ) {
+	void setValue(final Object theValue) {
 		value = theValue;
 	}
 }

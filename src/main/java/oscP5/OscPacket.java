@@ -35,84 +35,46 @@ import netP5.NetAddress;
 public abstract class OscPacket extends OscPatcher {
 
 	protected static final int SYSTEM = 1;
-
 	protected static final int MESSAGE = 2;
-
 	protected static final int BUNDLE = 3;
 
-	protected InetAddress inetAddress;
-
-	protected String hostAddress;
-
-	protected int _myType;
-
-	protected Object _myRef = null;
-
-	protected int port = 0;
-
-	protected int localPort = 0;
-
-	static protected OscPacket parse( Map m ) {
-
-		int n = evaluatePacket( bytes( m.get( "data" ) ) );
-
-		if ( n == MESSAGE ) {
-			return new OscMessage( m );
-		} else if ( n == BUNDLE ) {
-			return new OscBundle( m );
-		} else if ( n == SYSTEM ) {
-			/* TODO applies to tcp client operations for a tcp server including connect, disconnect,
-			 * etc. for now will be ignored. */
-			return null;
-		}
-		return new OscMessage( "error" );
-
+	private static int evaluatePacket(byte[] theBytes) {
+		/** TODO check or re-implement */
+		return ((theBytes.length > 0)
+				? (Bytes.areEqual(OscBundle.BUNDLE_AS_BYTES, Bytes.copy(theBytes, 0, OscBundle.BUNDLE_AS_BYTES.length))
+						? BUNDLE
+						: MESSAGE)
+				: SYSTEM);
 	}
 
-	private static int evaluatePacket( byte[] theBytes ) {
-		return ( ( theBytes.length > 0 ) ? ( Bytes.areEqual( OscBundle.BUNDLE_AS_BYTES , Bytes.copy( theBytes , 0 , OscBundle.BUNDLE_AS_BYTES.length ) ) ? BUNDLE : MESSAGE ) : SYSTEM );
-	}
-
-	/**
-	 * when in TCP mode, tcpConnection() returns the instance of the TcpClient that has sent the
-	 * OscMessage.
-	 */
-	public SocketChannel tcpConnection( ) {
-		if ( _myRef instanceof SocketChannel ) {
-			return ( SocketChannel ) _myRef;
-		}
+	public SocketChannel tcpConnection() {
+		/** TODO re-implement */
 		return null;
 	}
 
-	public Object remoteChannel( ) {
-		return _myRef;
+	public Object remoteChannel() {
+		/** TODO re-implement */
+		return null;
 	}
 
-	protected boolean isValid( ) {
-		return isValid;
+	public int port() {
+		/** TODO re-implement */
+		return -1;
 	}
 
-	protected int type( ) {
-		return _myType;
+	public NetAddress netAddress() {
+		return null;
 	}
 
-	public int port( ) {
-		return port;
+	public String getAddress() {
+		return null;
 	}
 
-	public NetAddress netAddress( ) {
-		return new NetAddress( inetAddress , port );
-	}
-
-	public String getAddress( ) {
-		return hostAddress;
-	}
-
-	public abstract byte[] getBytes( );
+	public abstract byte[] getBytes();
 
 	@Deprecated
-	public NetAddress netaddress( ) {
-		return new NetAddress( inetAddress , port );
+	public NetAddress netaddress() {
+		return netAddress();
 	}
 
 }

@@ -30,619 +30,465 @@ import java.util.Map;
 import netP5.Bytes;
 
 /**
- * An OSC message consists of an OSC Address Pattern, an OSC Type Tag String and the OSC arguments.
+ * An OSC message consists of an OSC Address Pattern, an OSC Type Tag String and
+ * the OSC arguments.
  * 
  * @related OscBundle
  * @example oscP5sendReceive
  */
 public class OscMessage extends OscPacket {
 
-	protected final OscArgument _myOscArgument = new OscArgument( );
-	protected boolean isPlugged = false;
-
-	OscMessage( Map m ) {
-		parseMessage( bytes( m.get( "data" ) ) );
-		_myRef = m.get( "socket-ref" );
-		hostAddress = s( m.get( "socket-address" ) , null );
-		port = i( m.get( "socket-port" ) , 0 );
-		localPort = i( m.get( "local-port" ) , 0 );
+	public OscMessage(final OscMessage theOscMessage) {
+		/** TODO re-implement */
 	}
 
-	public OscMessage( final OscMessage theOscMessage ) {
-
-		inetAddress = theOscMessage.inetAddress;
-		port = theOscMessage.port;
-		hostAddress = theOscMessage.hostAddress;
-		_myRef = theOscMessage.tcpConnection( );
-		_myAddrPattern = theOscMessage._myAddrPattern;
-		_myTypetag = theOscMessage._myTypetag;
-		_myData = theOscMessage._myData;
-		_myArguments = theOscMessage._myArguments;
-		isValid = true;
+	public OscMessage(final String theAddrPattern) {
+		/** TODO re-implement */
 	}
 
-	public OscMessage( final String theAddrPattern ) {
-		this( theAddrPattern , new Object[ 0 ] );
+	public OscMessage(final int theAddrInt) {
+		/** TODO re-implement */
 	}
 
-	public OscMessage( final int theAddrInt ) {
-		this( theAddrInt , new Object[ 0 ] );
+	public OscMessage(final String theAddrPattern, final Object... theArguments) {
+		/** TODO re-implement */
 	}
 
-	public OscMessage( final String theAddrPattern , final Object ... theArguments ) {
-		init( );
-		setAddress( theAddrPattern );
-		setArguments( theArguments );
+	public OscMessage(final int theAddrPattern, final Object... theArguments) {
+		/** TODO re-implement */
 	}
 
-	public OscMessage( final int theAddrPattern , final Object ... theArguments ) {
-		init( );
-		setAddress( theAddrPattern );
-		setArguments( theArguments );
-	}
-
-	protected void init( ) {
-		_myTypetag = new byte[ 0 ];
-		_myData = new byte[ 0 ];
-	}
-
-	/**
-	 * clear and reset an OscMessage for reuse.
-	 */
-	public OscMessage clear( ) {
-		init( );
-		setAddress( "" );
-		setArguments( new Object[ 0 ] );
+	public OscMessage clear() {
+		/** TODO re-implement */
 		return this;
 	}
 
-	public OscMessage clearArguments( ) {
-		_myTypetag = new byte[ 0 ];
-		_myData = new byte[ 0 ];
-		_myArguments = new Object[ 0 ];
+	public OscMessage clearArguments() {
 		return this;
 	}
 
-	/**
-	 * TODO set should enable the programmer to set values of an existing osc message.
-	 */
-	public OscMessage set( final int theIndex , final Object theObject ) {
-		// byte[] myPreTypetag = new byte[theIndex];
-		// byte[] myPostTypetag = new byte[_myTypetag.length - theIndex];
-		System.out.println( "Typetag:\t" + _myTypetag.length );
-		System.out.println( "Arguments:\t" );
-		Bytes.printBytes( _myData );
-		System.out.println( _myArguments.length );
-		for ( int i = 0 ; i < _myArguments.length ; i++ ) {
-			System.out.println( _myArguments[ i ] );
-		}
+	public OscMessage set(final int theIndex, final Object theObject) {
+		/** NOTE to modify existing OscMessage */
+		/** TODO re-implement */
 		return this;
 	}
 
-	public boolean checkTypetag( final String theTypeTag ) {
-		return theTypeTag.equals( getTypetag( ) );
+	public boolean checkTypetag(final String theTypeTag) {
+		/** TODO re-implement */
+		return false;
 	}
 
-	/**
-	 * check if an address pattern equals a specific address pattern you are looking for. this is
-	 * usually used when parsing an osc message. e.g. if( theOscMessage.checkAddress( "/test" ) ) {
-	 * ... }
-	 * 
-	 */
-	public boolean checkAddress( final String theAddrPattern ) {
-		return theAddrPattern.equals( getAddress( ) );
+	public boolean checkAddress(final String theAddrPattern) {
+		/** TODO re-implement */
+		return false;
 	}
 
-	/**
-	 * set the address pattern of an osc message. you can set a string or an int as address
-	 * pattern.tnt might be useful for supercollider users. oscP5 does support ints and strings as
-	 * address patterns when sending and receiving messages.
-	 * 
-	 */
-	public OscMessage setAddress( final String theAddrPattern ) {
-		_myAddrPattern = theAddrPattern.getBytes( );
+	public OscMessage setAddress(final String theAddrPattern) {
+		/** TODO re-implement */
 		return this;
 	}
 
-	public OscMessage setAddress( final int theAddrPattern ) {
-		_myAddrPattern = Bytes.toBytes( theAddrPattern );
+	public OscMessage setAddress(final int theAddrPattern) {
+		/** TODO re-implement */
 		return this;
 	}
 
-	/**
-	 * set the arguments of the osc message using an object array. with version 0.9.4 the existing
-	 * arguments are overwritten, to add the arguments to the argument list, use
-	 * addArguments(Object[])
-	 * 
-	 */
-	public OscMessage setArguments( final Object ... theArguments ) {
-		clearArguments( );
-		add( theArguments );
+	public OscMessage setArguments(final Object... theArguments) {
+		/** TODO re-implement */
 		return this;
 	}
 
-	public String getAddress( ) {
-		return Bytes.getAsString( _myAddrPattern );
+	public String getAddress() {
+		/** TODO re-implement */
+		return null;
 	}
 
-	/**
-	 * returns the typetag of the osc message. e.g. the message contains 3 floats then the typetag
-	 * would be "fff"
-	 */
-	public String getTypetag( ) {
-		return Bytes.getAsString( _myTypetag );
+	public String getTypetag() {
+		/** TODO re-implement */
+		return null;
 	}
 
-	public long getTimetag( ) {
-		return timetag;
+	public long getTimetag() {
+		/** TODO re-implement */
+		return -1;
 	}
 
-	public Object[] getArguments( ) {
-		return _myArguments;
+	public Object[] getArguments() {
+		/** TODO re-implement */
+		return null;
 	}
 
-	public Object getArgument( int theIndex ) {
-		if ( theIndex >= 0 && theIndex < _myArguments.length ) {
-			return _myArguments[ theIndex ];
-		}
-		return new Object( );
+	public Object getArgument(int theIndex) {
+		/** TODO re-implement */
+		return null;
 	}
 
-	/**
-	 * returns the address pattern of the osc message as int.
-	 */
-	public int addrInt( ) {
-		return _myAddrInt;
+	public int addrInt() {
+		/** TODO re-implement */
+		return -1;
 	}
 
-	protected Object[] argsAsArray( ) {
-		switch ( _myTypetag[ 0 ] ) {
-		case ( 0X66 ): // float f
-			final float[] myFloatArray = new float[ _myArguments.length ];
-			for ( int i = 0 ; i < myFloatArray.length ; i++ ) {
-				myFloatArray[ i ] = ( ( Float ) _myArguments[ i ] ).floatValue( );
+	public byte[] getAddrPatternAsBytes() {
+		/** TODO re-implement */
+		return null;
+	}
+
+	public byte[] getTypetagAsBytes() {
+		/** TODO re-implement */
+		return null;
+	}
+
+	public byte[] getBytes() {
+		/** TODO re-implement */
+		return null;
+	}
+
+	public OscMessage add() {
+		/** TODO re-implement */
+		return this;
+	}
+
+	public OscMessage add(final int theValue) {
+		/** TODO re-implement */
+		return this;
+	}
+
+	public OscMessage add(final String theValue) {
+		/** TODO re-implement */
+		return this;
+	}
+
+	public OscMessage add(final float theValue) {
+		/** TODO re-implement */
+		return this;
+	}
+
+	public OscMessage add(final double theValue) {
+		/** TODO re-implement */
+		return this;
+	}
+
+	public OscMessage add(final boolean theValue) {
+		/** TODO re-implement */
+		return this;
+	}
+
+	public OscMessage add(final Boolean theValue) {
+		/** TODO re-implement */
+		return this;
+	}
+
+	public OscMessage add(final Integer theValue) {
+		/** TODO re-implement */
+		return this;
+	}
+
+	public OscMessage add(final Float theValue) {
+		/** TODO re-implement */
+		return this;
+	}
+
+	public OscMessage add(final Double theValue) {
+		/** TODO re-implement */
+		return this;
+	}
+
+	public OscMessage add(final Long theValue) {
+		/** TODO re-implement */
+		return this;
+	}
+
+	public OscMessage add(final Character theValue) {
+		/** TODO re-implement */
+		return this;
+	}
+
+	public OscMessage add(final char theValue) {
+		/** TODO re-implement */
+		return this;
+	}
+
+	public OscMessage add(final int theChannel, final int theStatus, final int theValue1, final int theValue2) {
+		/** TODO re-implement */
+		return this;
+	}
+
+	public OscMessage add(final int... theArray) {
+		/** TODO re-implement */
+		return this;
+	}
+
+	public OscMessage add(final char... theArray) {
+		/** TODO re-implement */
+		return this;
+	}
+
+	public OscMessage add(final float... theArray) {
+		/** TODO re-implement */
+		return this;
+	}
+
+	public OscMessage add(final String... theArray) {
+		/** TODO re-implement */
+		return this;
+	}
+
+	public OscMessage add(final byte... theArray) {
+		/** TODO re-implement */
+		return this;
+	}
+
+	public OscMessage add(final Object... os) {
+		/** TODO re-implement */
+		return this;
+	}
+
+	private boolean add(final Object theObject) {
+		/** TODO check or re-implement */
+		if (theObject instanceof Number) {
+			if (theObject instanceof Integer) {
+			} else if (theObject instanceof Float) {
+			} else if (theObject instanceof Double) {
+			} else if (theObject instanceof Long) {
 			}
-			return new Object[] { myFloatArray };
-		case ( 0x69 ): // int i
-			final int[] myIntArray = new int[ _myArguments.length ];
-			for ( int i = 0 ; i < myIntArray.length ; i++ ) {
-				myIntArray[ i ] = ( ( Integer ) _myArguments[ i ] ).intValue( );
-			}
-			return new Object[] { myIntArray };
-		case ( 0x53 ): // Symbol S
-		case ( 0x73 ): // String s
-			final String[] myStringArray = new String[ _myArguments.length ];
-			for ( int i = 0 ; i < myStringArray.length ; i++ ) {
-				myStringArray[ i ] = ( ( String ) _myArguments[ i ] );
-			}
-			return new Object[] { myStringArray };
-		default:
-			break;
-		}
-		return new Object[] { };
-	}
-
-	public byte[] getAddrPatternAsBytes( ) {
-		return Bytes.append( _myAddrPattern , new byte[ align( _myAddrPattern.length ) ] );
-	}
-
-	public byte[] getTypetagAsBytes( ) {
-		return _myTypetag;
-	}
-
-	public byte[] getBytes( ) {
-		byte[] myBytes = new byte[ 0 ];
-		byte[] myTypeTag = Bytes.copy( _myTypetag , 0 );
-		myBytes = Bytes.append( myBytes , _myAddrPattern , new byte[ align( _myAddrPattern.length ) ] );
-		if ( myTypeTag.length == 0 ) {
-			myTypeTag = new byte[] { KOMMA };
-		} else if ( myTypeTag[ 0 ] != KOMMA ) {
-			myTypeTag = Bytes.append( new byte[] { KOMMA } , myTypeTag );
-		}
-		myBytes = Bytes.append( myBytes , myTypeTag , new byte[ align( myTypeTag.length ) ] );
-		myBytes = Bytes.append( myBytes , _myData , new byte[ align( _myData.length ) % 4 ] );
-		return myBytes;
-	}
-
-	protected Object[] increase( int theAmount ) {
-		if ( _myArguments.length < 1 || _myArguments == null ) {
-			return new Object[ 1 ];
-		}
-		Object[] myArguments = new Object[ _myArguments.length + theAmount ];
-		System.arraycopy( _myArguments , 0 , myArguments , 0 , _myArguments.length );
-		return myArguments;
-	}
-
-	public OscMessage add( ) {
-		_myTypetag = Bytes.append( _myTypetag , new byte[] { 0x4e } );
-		return this;
-	}
-
-	public OscMessage add( final int theValue ) {
-		_myTypetag = Bytes.append( _myTypetag , new byte[] { 0x69 } );
-		_myData = Bytes.append( _myData , Bytes.toBytes( theValue ) );
-		_myArguments = increase( 1 );
-		_myArguments[ _myArguments.length - 1 ] = new Integer( theValue );
-		return this;
-	}
-
-	public OscMessage add( final String theValue ) {
-		_myTypetag = Bytes.append( _myTypetag , new byte[] { 0x73 } );
-		final byte[] myString = theValue.getBytes( );
-		_myData = Bytes.append( _myData , myString , new byte[ align( myString.length ) ] );
-		_myArguments = increase( 1 );
-		_myArguments[ _myArguments.length - 1 ] = theValue;
-		return this;
-	}
-
-	public OscMessage add( final float theValue ) {
-		_myTypetag = Bytes.append( _myTypetag , new byte[] { 0x66 } );
-		_myData = Bytes.append( _myData , Bytes.toBytes( Float.floatToIntBits( theValue ) ) );
-		_myArguments = increase( 1 );
-		_myArguments[ _myArguments.length - 1 ] = new Float( theValue );
-		return this;
-	}
-
-	public OscMessage add( final double theValue ) {
-		_myTypetag = Bytes.append( _myTypetag , new byte[] { 0x64 } );
-		_myData = Bytes.append( _myData , Bytes.toBytes( Double.doubleToLongBits( theValue ) ) );
-		_myArguments = increase( 1 );
-		_myArguments[ _myArguments.length - 1 ] = new Double( theValue );
-		return this;
-	}
-
-	public OscMessage add( final boolean theValue ) {
-		if ( theValue ) {
-			_myTypetag = Bytes.append( _myTypetag , new byte[] { 0x54 } );
+		} else if (theObject instanceof String) {
+		} else if (theObject instanceof Boolean) {
+		} else if (theObject instanceof Character) {
 		} else {
-			_myTypetag = Bytes.append( _myTypetag , new byte[] { 0x46 } );
-		}
-		return this;
-	}
-
-	public OscMessage add( final Boolean theValue ) {
-		add( ( theValue ).booleanValue( ) );
-		return this;
-	}
-
-	public OscMessage add( final Integer theValue ) {
-		add( theValue.intValue( ) );
-		return this;
-	}
-
-	public OscMessage add( final Float theValue ) {
-		add( theValue.floatValue( ) );
-		return this;
-	}
-
-	public OscMessage add( final Double theValue ) {
-		add( theValue.doubleValue( ) );
-		return this;
-	}
-
-	public OscMessage add( final Long theValue ) {
-		add( theValue.longValue( ) );
-		return this;
-	}
-
-	public OscMessage add( final Character theValue ) {
-		add( theValue.charValue( ) );
-		return this;
-	}
-
-	public OscMessage add( final char theValue ) {
-		_myTypetag = Bytes.append( _myTypetag , new byte[] { 0x63 } );
-		_myData = Bytes.append( _myData , Bytes.toBytes( theValue ) );
-		_myArguments = increase( 1 );
-		_myArguments[ _myArguments.length - 1 ] = new Character( theValue );
-		return this;
-	}
-
-	public OscMessage add( final int channel , final int status , final int value1 , final int value2 ) {
-		_myTypetag = Bytes.append( _myTypetag , new byte[] { 0x6d } ); // m
-		final byte[] theBytes = new byte[ 4 ];
-		theBytes[ 0 ] = ( byte ) channel;
-		theBytes[ 1 ] = ( byte ) status;
-		theBytes[ 2 ] = ( byte ) value1;
-		theBytes[ 3 ] = ( byte ) value2;
-		_myData = Bytes.append( _myData , theBytes );
-		_myArguments = increase( 1 );
-		_myArguments[ _myArguments.length - 1 ] = theBytes;
-		return this;
-	}
-
-	public OscMessage add( final int ... theArray ) {
-		for ( int i : theArray ) {
-			add( i );
-		}
-		return this;
-	}
-
-	public OscMessage add( final char ... theArray ) {
-		for ( char c : theArray ) {
-			add( c );
-		}
-		return this;
-	}
-
-	public OscMessage add( final float ... theArray ) {
-		for ( float f : theArray ) {
-			add( f );
-		}
-		return this;
-	}
-
-	public OscMessage add( final String ... theArray ) {
-		for ( String s : theArray ) {
-			add( s );
-		}
-		return this;
-	}
-
-	public OscMessage add( final byte ... theArray ) {
-		_myTypetag = Bytes.append( _myTypetag , new byte[] { 0x62 } );
-		_myData = Bytes.append( _myData , makeBlob( theArray ) );
-		_myArguments = increase( 1 );
-		_myArguments[ _myArguments.length - 1 ] = theArray;
-		return this;
-	}
-
-	/**
-	 * add a list of arguments to an exisiting set of arguments. to overwrite the existing argument
-	 * list, use setArguments(Object[])
-	 */
-	public OscMessage add( final Object ... os ) {
-		for ( Object o : os ) {
-			if ( !add( o ) ) {
-				System.out.println( "type of Argument not defined in osc specs." );
+			if (theObject instanceof int[]) {
+			} else if (theObject instanceof float[]) {
+			} else if (theObject instanceof byte[]) {
+			} else if (theObject instanceof String[]) {
+			} else if (theObject instanceof char[]) {
+			} else if (theObject instanceof double[]) {
+			} else {
+				return false;
 			}
-		}
-		return this;
-	}
-
-	private boolean add( final Object theObject ) {
-		if ( theObject instanceof Number ) {
-			if ( theObject instanceof Integer ) {
-				add( ( Integer ) theObject );
-			} else if ( theObject instanceof Float ) {
-				add( ( Float ) theObject );
-			} else if ( theObject instanceof Double ) {
-				add( ( Double ) theObject );
-			} else if ( theObject instanceof Long ) {
-				add( ( Long ) theObject );
-			}
-		} else if ( theObject instanceof String ) {
-			add( ( String ) theObject );
-		} else if ( theObject instanceof Boolean ) {
-			add( ( Boolean ) theObject );
-		} else if ( theObject instanceof Character ) {
-			add( ( Character ) theObject );
-		}
-
-		else {
-			if ( theObject instanceof int[] ) {
-				add( ( int[] ) theObject );
-				return true;
-			} else if ( theObject instanceof float[] ) {
-				add( ( float[] ) theObject );
-				return true;
-			} else if ( theObject instanceof byte[] ) {
-				add( ( byte[] ) theObject );
-				return true;
-			}
-
-			else if ( theObject instanceof String[] ) {
-				add( ( String[] ) theObject );
-				return true;
-			} else if ( theObject instanceof char[] ) {
-				add( ( char[] ) theObject );
-				return true;
-			} else if ( theObject instanceof double[] ) {
-				add( ( float[] ) theObject );
-				return true;
-			}
-			return false;
 		}
 		return true;
 	}
 
-	public static byte[] makeBlob( final byte[] b ) {
+	public static byte[] makeBlob(final byte[] b) {
+		/** TODO check or re-implement */
 		final int tLength = b.length;
-		byte[] b1 = Bytes.toBytes( tLength );
-		b1 = Bytes.append( b1 , b );
+		byte[] b1 = Bytes.toBytes(tLength);
+		b1 = Bytes.append(b1, b);
 		final int t = tLength % 4;
-		if ( t != 0 ) {
-			b1 = Bytes.append( b1 , new byte[ 4 - t ] );
+		if (t != 0) {
+			b1 = Bytes.append(b1, new byte[4 - t]);
 		}
 		return b1;
 	}
 
-	/**
-	 * returns an OscArgument from which the value can be parsed into the right format. e.g. to
-	 * parse an int from the first argument in the osc message, use theOscMessage.get(0).intValue();
-	 * 
-	 * @param theIndex int
-	 * @return OscArgument
-	 */
-	public OscArgument get( final int theIndex ) {
-		_myOscArgument.setValue( getArgument( theIndex ) );
-		return _myOscArgument;
+	public OscArgument get(final int theIndex) {
+		/** TODO re-implement */
+		return null;
 	}
 
-	public final String toString( ) {
-		return String.format( "OscMessage{hostAddress=%s, port=%s, address=%s, typetag=%s, data-size=%s, data=%s}" , hostAddress , port , getAddress( ) , getTypetag( ) , getArguments( ).length , arrayToString( getArguments( ) ) );
+	public final String toString() {
+		/** TODO re-implement */
+		return null;
 	}
 
-	private final String arrayToString( Object[] os ) {
+	private final String arrayToString(Object[] os) {
+		/** TODO check or re-implement */
 		String s = "[";
-		for ( Object o : os ) {
-			s += o.toString( ) + ",";
+		for (Object o : os) {
+			s += o.toString() + ",";
 		}
-		s = s.replaceAll( ",$" , "" );
+		s = s.replaceAll(",$", "");
 		s += "]";
 		return s;
 	}
 
-	public boolean isPlugged( ) {
-		return isPlugged;
+	public boolean isPlugged() {
+		/** TODO re-implement */
+		return false;
 	}
 
-	public void print( ) {
-		System.out.println( "-OscMessage----------" );
-		System.out.println( "received from\t" + hostAddress + ":" + port );
-		System.out.println( "addrpattern\t" + Bytes.getAsString( _myAddrPattern ) );
-		System.out.println( "typetag\t" + Bytes.getAsString( _myTypetag ) );
-		System.out.println( Bytes.getAsString( _myArguments ) );
-		System.out.println( "---------------------" );
+	public void print() {
+		/** TODO re-implement */
 	}
 
-	public void printData( ) {
-		Bytes.printBytes( _myData );
+	public void printData() {
+		/** TODO re-implement */
 	}
 
-	public int intValue( int theIndex ) {
-		return i( getValue( theIndex ) );
+	public int intValue(int theIndex) {
+		/** TODO check or re-implement */
+		return i(getValue(theIndex));
 	}
 
-	public float floatValue( int theIndex ) {
-		return f( getValue( theIndex ) );
+	public float floatValue(int theIndex) {
+		/** TODO check or re-implement */
+		return f(getValue(theIndex));
 	}
 
-	public char charValue( int theIndex ) {
-		return c( getValue( theIndex ) );
+	public char charValue(int theIndex) {
+		/** TODO check or re-implement */
+		return c(getValue(theIndex));
 	}
 
-	public double doubleValue( int theIndex ) {
-		return d( getValue( theIndex ) );
+	public double doubleValue(int theIndex) {
+		/** TODO check or re-implement */
+		return d(getValue(theIndex));
 	}
 
-	public long longValue( int theIndex ) {
-		return l( getValue( theIndex ) );
+	public long longValue(int theIndex) {
+		/** TODO check or re-implement */
+		return l(getValue(theIndex));
 	}
 
-	public boolean booleanValue( int theIndex ) {
-		return b( getValue( theIndex ) );
+	public boolean booleanValue(int theIndex) {
+		/** TODO check or re-implement */
+		return b(getValue(theIndex));
 	}
 
-	public String stringValue( int theIndex ) {
-		return s( getValue( theIndex ) );
+	public String stringValue(int theIndex) {
+		/** TODO check or re-implement */
+		return s(getValue(theIndex));
 	}
 
-	public String[] stringValues( int theStart , int theEnd ) {
+	public String[] stringValues(int theStart, int theEnd) {
+		/** TODO check or re-implement */
 		int n = theEnd - theStart;
-		String[] arr = new String[ n ];
-		for ( int i = 0 ; i < n ; i++ ) {
-			arr[ i ] = stringValue( theStart + i );
+		String[] arr = new String[n];
+		for (int i = 0; i < n; i++) {
+			arr[i] = stringValue(theStart + i);
 		}
 		return arr;
 	}
 
-	public int[] intValues( int theStart , int theEnd ) {
+	public int[] intValues(int theStart, int theEnd) {
+		/** TODO check or re-implement */
 		int n = theEnd - theStart;
-		int[] arr = new int[ n ];
-		for ( int i = 0 ; i < n ; i++ ) {
-			arr[ i ] = intValue( theStart + i );
+		int[] arr = new int[n];
+		for (int i = 0; i < n; i++) {
+			arr[i] = intValue(theStart + i);
 		}
 		return arr;
 	}
 
-	public float[] floatValues( int theStart , int theEnd ) {
+	public float[] floatValues(int theStart, int theEnd) {
+		/** TODO check or re-implement */
 		int n = theEnd - theStart;
-		float[] arr = new float[ n ];
-		for ( int i = 0 ; i < n ; i++ ) {
-			arr[ i ] = intValue( theStart + i );
+		float[] arr = new float[n];
+		for (int i = 0; i < n; i++) {
+			arr[i] = intValue(theStart + i);
 		}
 		return arr;
 	}
 
-	public char[] charValues( int theStart , int theEnd ) {
+	public char[] charValues(int theStart, int theEnd) {
+		/** TODO check or re-implement */
 		int n = theEnd - theStart;
-		char[] arr = new char[ n ];
-		for ( int i = 0 ; i < n ; i++ ) {
-			arr[ i ] = charValue( theStart + i );
+		char[] arr = new char[n];
+		for (int i = 0; i < n; i++) {
+			arr[i] = charValue(theStart + i);
 		}
 		return arr;
 	}
 
-	public double[] doubleValues( int theStart , int theEnd ) {
+	public double[] doubleValues(int theStart, int theEnd) {
+		/** TODO check or re-implement */
 		int n = theEnd - theStart;
-		double[] arr = new double[ n ];
-		for ( int i = 0 ; i < n ; i++ ) {
-			arr[ i ] = doubleValue( theStart + i );
+		double[] arr = new double[n];
+		for (int i = 0; i < n; i++) {
+			arr[i] = doubleValue(theStart + i);
 		}
 		return arr;
 	}
 
-	public long[] longValues( int theStart , int theEnd ) {
+	public long[] longValues(int theStart, int theEnd) {
+		/** TODO check or re-implement */
 		int n = theEnd - theStart;
-		long[] arr = new long[ n ];
-		for ( int i = 0 ; i < n ; i++ ) {
-			arr[ i ] = longValue( theStart + i );
+		long[] arr = new long[n];
+		for (int i = 0; i < n; i++) {
+			arr[i] = longValue(theStart + i);
 		}
 		return arr;
 	}
 
-	public boolean[] booleanValues( int theStart , int theEnd ) {
+	public boolean[] booleanValues(int theStart, int theEnd) {
+		/** TODO check or re-implement */
 		int n = theEnd - theStart;
-		boolean[] arr = new boolean[ n ];
-		for ( int i = 0 ; i < n ; i++ ) {
-			arr[ i ] = booleanValue( theStart + i );
+		boolean[] arr = new boolean[n];
+		for (int i = 0; i < n; i++) {
+			arr[i] = booleanValue(theStart + i);
 		}
 		return arr;
 	}
 
-	public byte[] bytesValue( int theIndex ) {
-		return bytes( getValue( theIndex ) );
+	public byte[] bytesValue(int theIndex) {
+		/** TODO check or re-implement */
+		return bytes(getValue(theIndex));
 	}
 
-	public byte[] blobValue( int theIndex ) {
-		return bytesValue( theIndex );
+	public byte[] blobValue(int theIndex) {
+		/** TODO check or re-implement */
+		return bytesValue(theIndex);
 	}
 
-	public Object getValue( int theIndex ) {
-		if ( theIndex < getArguments( ).length ) {
-			return getArguments( )[ theIndex ];
+	public Object getValue(int theIndex) {
+		/** TODO check or re-implement */
+		if (theIndex < getArguments().length) {
+			return getArguments()[theIndex];
 		}
-		indexOutOfBounds( theIndex );
+		indexOutOfBounds(theIndex);
 		return null;
 	}
 
-	public void indexOutOfBounds( int n ) {
-		System.err.println( "ArrayIndexOutOfBounds: index requested " + n + ", expected < " + getArguments( ).length );
+	public void indexOutOfBounds(int n) {
+		/** TODO check or re-implement */
+		System.err.println("ArrayIndexOutOfBounds: index requested " + n + ", expected < " + getArguments().length);
 	}
 
 	/* Deprecated methods */
 
-	@Deprecated public void setAddrPattern( final String theAddrPattern ) {
-		_myAddrPattern = theAddrPattern.getBytes( );
+	@Deprecated
+	public void setAddrPattern(final String theAddrPattern) {
+		/** TODO check or re-implement */
 	}
 
-	@Deprecated public void setAddrPattern( final int theAddrPattern ) {
-		_myAddrPattern = Bytes.toBytes( theAddrPattern );
+	@Deprecated
+	public void setAddrPattern(final int theAddrPattern) {
+		/** TODO check or re-implement */
 	}
 
-	@Deprecated public boolean checkAddrPattern( final String theAddrPattern ) {
-		return theAddrPattern.equals( addrPattern( ) );
+	@Deprecated
+	public boolean checkAddrPattern(final String theAddrPattern) {
+		/** TODO check or re-implement */
+		return false;
 	}
 
-	@Deprecated public String typetag( ) {
-		return Bytes.getAsString( _myTypetag );
+	@Deprecated
+	public String typetag() {
+		/** TODO check or re-implement */
+		return null;
 	}
 
-	@Deprecated public long timetag( ) {
-		return timetag;
+	@Deprecated
+	public long timetag() {
+		/** TODO check or re-implement */
+		return -1;
 	}
 
-	@Deprecated public Object[] arguments( ) {
-		return _myArguments;
+	@Deprecated
+	public Object[] arguments() {
+		/** TODO check or re-implement */
+		return null;
 	}
 
-	@Deprecated public OscMessage addArguments( final Object ... theArguments ) {
-		return add( theArguments );
+	@Deprecated
+	public OscMessage addArguments(final Object... theArguments) {
+		/** TODO check or re-implement */
+		return this;
 	}
 
-	@Deprecated public String addrPattern( ) {
-		return Bytes.getAsString( _myAddrPattern );
+	@Deprecated
+	public String addrPattern() {
+		/** TODO check or re-implement */
+		return null;
 	}
 
 }

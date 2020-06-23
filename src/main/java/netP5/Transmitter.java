@@ -31,13 +31,13 @@ import java.util.Collection;
 
 public interface Transmitter {
 
-	public boolean send( byte[] theContent );
+	public boolean send(byte[] theContent);
 
-	public boolean send( byte[] theContent , Collection< InetSocketAddress > theAddress );
+	public boolean send(byte[] theContent, Collection<InetSocketAddress> theAddress);
 
-	public boolean send( byte[] theContent , String theHost , int thePort );
+	public boolean send(byte[] theContent, String theHost, int thePort);
 
-	public boolean send( byte[] theContent , SocketAddress ... theAddress );
+	public boolean send(byte[] theContent, SocketAddress... theAddress);
 
-	public boolean close( );
+	public boolean close();
 }

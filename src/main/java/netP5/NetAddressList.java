@@ -31,39 +31,30 @@ import java.util.List;
 
 @Deprecated
 public class NetAddressList {
+	/** TODO consider to extend Collection, Set or List */
 
-	protected List< NetAddress > _myList = new ArrayList< NetAddress >( );
+	protected List<NetAddress> _myList = new ArrayList<NetAddress>();
 
-	public void add( NetAddress theNetAddress ) {
-		if ( theNetAddress.isValid == true ) {
-			_myList.add( theNetAddress );
-		}
+	public void add(final NetAddress theNetAddress) {
+		/** TODO re-implement */
 	}
 
-	public void add( String theAddress , int thePort ) {
-		NetAddress myOscHost = new NetAddress( theAddress , thePort );
-		if ( myOscHost.isValid == true ) {
-			_myList.add( myOscHost );
-		}
+	public void add(final String theAddress, final int thePort) {
+		/** TODO re-implement */
 	}
 
-	public void remove( String theAddress , int thePort ) {
-		for ( int i = 0 ; i < _myList.size( ) ; i++ ) {
-			NetAddress myHost = ( ( NetAddress ) _myList.get( i ) );
-			if ( myHost.hostAddress.equals( theAddress ) && myHost.port == thePort ) {
-				_myList.remove( myHost );
-			}
-		}
+	public void remove(final String theAddress, final int thePort) {
+		/** TODO re-implement */
 	}
 
-	public void remove( NetAddress theNetAddress ) {
-		_myList.remove( theNetAddress );
+	public void remove(final NetAddress theNetAddress) {
+		_myList.remove(theNetAddress);
 	}
 
-	public NetAddress get( String theIPaddress , int thePort ) {
-		for ( int i = 0 ; i < _myList.size( ) ; i++ ) {
-			NetAddress myHost = ( ( NetAddress ) _myList.get( i ) );
-			if ( myHost.hostAddress.equals( theIPaddress ) && myHost.port == thePort ) {
+	public NetAddress get(final String theIPaddress, final int thePort) {
+		for (int i = 0; i < _myList.size(); i++) {
+			final NetAddress myHost = ((NetAddress) _myList.get(i));
+			if (myHost.hostAddress.equals(theIPaddress) && myHost.port == thePort) {
 				return myHost;
 			}
 		}
@@ -71,37 +62,33 @@ public class NetAddressList {
 
 	}
 
-	public boolean contains( NetAddress theNetAddress ) {
-		if ( _myList.contains( theNetAddress ) ) {
-			return true;
-		}
+	public boolean contains(final NetAddress theNetAddress) {
+		/** TODO re-implement */
 		return false;
 	}
 
-	public boolean contains( String theIPaddress , int thePort ) {
-		for ( int i = 0 ; i < _myList.size( ) ; i++ ) {
-			NetAddress myHost = _myList.get( i );
-			if ( myHost.hostAddress.equals( theIPaddress ) && myHost.port == thePort ) {
-				return true;
-			}
-		}
+	public boolean contains(final String theIPaddress, final int thePort) {
+		/** TODO re-implement */
 		return false;
 	}
 
-	public int size( ) {
-		return _myList.size( );
+	public int size() {
+		/** TODO re-implement */
+		return -1;
 	}
 
-	public void set( NetAddress ... theList ) {
-		_myList = new ArrayList< NetAddress >( Arrays.asList( theList ) );
+	public void set(final NetAddress... theList) {
+		/** TODO re-implement */
 	}
 
-	public List list( ) {
-		return _myList;
+	public List list() {
+		/** TODO re-implement */
+		return null;
 	}
 
-	public NetAddress get( int theIndex ) {
-		return _myList.get( theIndex );
+	public NetAddress get(final int theIndex) {
+		/** TODO re-implement */
+		return null;
 	}
 
 }
