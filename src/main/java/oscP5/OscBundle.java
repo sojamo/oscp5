@@ -1,120 +1,147 @@
-/**
- * An OSC (Open Sound Control) library for processing.
- *
- * ##copyright##
- *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
- * 
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * Lesser General Public License for more details.
- * 
- * You should have received a copy of the GNU Lesser General
- * Public License along with this library; if not, write to the
- * Free Software Foundation, Inc., 59 Temple Place, Suite 330,
- * Boston, MA 02111-1307 USA
- * 
- * @author ##author##
- * @modified ##date##
- * @version ##version##
- */
-
 package oscP5;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
+import static oscP5.OscUtils.toList;
 
-import netP5.Bytes;
+public class OscBundle extends ABundle {
 
-/**
- * Osc Bundles are collections of Osc Messages. use bundles to send multiple osc
- * messages to one destination. the OscBundle timetag is supported for sending
- * but not for receiving yet.
- */
-public class OscBundle extends OscPacket {
+	private final List<OscPacket> packets = new ArrayList<>();
+	private final OscTimetag timetag = new OscTimetag();
+	static public final byte[] BUNDLE_AS_BYTES = { 0x23, 0x62, 0x75, 0x6E, 0x64, 0x6C, 0x65, 0x00 };
+	static public final int BUNDLE_HEADER_SIZE = 16;
 
-	protected static final int BUNDLE_HEADER_SIZE = 16;
-	protected static final byte[] BUNDLE_AS_BYTES = { 0x23, 0x62, 0x75, 0x6E, 0x64, 0x6C, 0x65, 0x00 };
-
-	public OscBundle() {
+	public OscBundle()
+	{
+		this(new ArrayList<>());
 	}
 
-	public OscBundle add(final OscMessage... theOscMessages) {
+	public OscBundle(final OscPacket... thePackets)
+	{
+		this(toList(thePackets));
+	}
+
+	public OscBundle(final List<OscPacket> thePackets)
+	{
+		addPackets(thePackets);
+	}
+
+	@Override
+	public OscBundle add(final OscPacket... thePackets)
+	{
+		addPackets(toList(thePackets));
 		return this;
 	}
 
-	public OscBundle clear() {
+	public OscBundle add(final List<OscPacket> thePackets)
+	{
+		addPackets(thePackets);
 		return this;
 	}
 
-	public OscBundle remove(final int theIndex) {
+	private void addPackets(final List<OscPacket> thePackets)
+	{
+		packets.addAll(thePackets);
+	}
+
+	public boolean isImmediate()
+	{
+		return timetag.isImmediate();
+	}
+
+	public OscTimetag getTimetag()
+	{
+		return timetag;
+	}
+
+	public OscBundle setTimetag(final OscTimetag theTimetag)
+	{
+		timetag.setTimetag(theTimetag);
 		return this;
 	}
 
-	public OscBundle remove(final OscMessage theOscMessage) {
+	@Override
+	public OscBundle setTimetag(final long theTime)
+	{
+		OscTimetag t = new OscTimetag();
+		t.setTimeMillis(theTime);
+		setTimetag(t);
 		return this;
 	}
 
-	public OscMessage getMessage(final int theIndex) {
-		/** TODO re-implement */
-		return null;
-	}
-
-	public int size() {
-		return -1;
-	}
-
-	public OscMessage get(final int theIndex) {
-		/** TODO re-implement */
-		return null;
-	}
-
-	public List<OscMessage> get() {
-		/** TODO re-implement */
-		return null;
-	}
-
-	/**
-	 * TODO set the timetag of an osc bundle. timetags are used to synchronize
-	 * events and execute events at a given time in the future or immediately.
-	 * timetags can only be set for osc bundles, not for osc messages. oscP5
-	 * supports receiving timetags, but does not queue messages for execution at a
-	 * set time.
-	 * 
-	 */
-	public OscBundle setTimetag(final long theTime) {
-		/** TODO re-implement */
-		return this;
-	}
-
-	public static long now() {
-		return System.currentTimeMillis();
-	}
-
-	public byte[] timetag() {
-		/** TODO re-implement */
-		return null;
-	}
-
-	public byte[] getBytes() {
-		byte[] myBytes = new byte[0];
-		myBytes = Bytes.append(myBytes, BUNDLE_AS_BYTES);
-		myBytes = Bytes.append(myBytes, timetag());
-		for (int i = 0; i < size(); i++) {
-			final byte[] tBytes = getMessage(i).getBytes();
-			myBytes = Bytes.append(myBytes, Bytes.toBytes(tBytes.length));
-			myBytes = Bytes.append(myBytes, tBytes);
+	@Override
+	public byte[] getBytes()
+	{
+		/** TODO review if this works for nested bundles? */
+		byte[] bytes = OscParser.append(BUNDLE_AS_BYTES, timetag.getBytes());
+		for (final OscPacket packet : packets) {
+			final byte[] b1 = packet.getBytes();
+			bytes = OscParser.append(bytes, OscParser.toBytes(b1.length));
+			bytes = OscParser.append(bytes, packet.getBytes());
 		}
-		return myBytes;
+		return bytes;
 	}
 
-	public final String toString() {
+	@Override
+	public OscPacket get(final int theIndex)
+	{
 		/** TODO re-implement */
-		return null;
+		return packets.get(theIndex);
+	}
+
+	@Override
+	public OscMessage getMessage(final int theIndex)
+	{
+		OscPacket packet = packets.get(theIndex);
+		if (packet instanceof OscMessage) {
+			return (OscMessage) packet;
+		} else {
+			return new InvalidOscMessage(packet.getBytes());
+		}
+	}
+
+	@Override
+	public int size()
+	{
+		return packets.size();
+	}
+
+	@Override
+	public OscBundle clear()
+	{
+		return this;
+	}
+
+	@Override
+	public OscBundle remove(final int theIndex)
+	{
+		packets.remove(theIndex);
+		return this;
+	}
+
+	@Override
+	public OscBundle remove(final OscPacket theOscPacket)
+	{
+		packets.remove(theOscPacket);
+		return this;
+	}
+
+	@Override
+	public List<OscPacket> getAll()
+	{
+		/** TODO check if ref or new array of packets should be returned here. */
+		return packets;
+	}
+
+	@Override
+	public String toString()
+	{
+		final StringBuilder b = new StringBuilder().append("{ class: OscBundle").append(", timetag:").append(timetag)
+				.append(", packets:[");
+		for (final OscPacket packet : packets) {
+			b.append(", ").append(packet.toString());
+		}
+		b.append("]}");
+		return b.toString();
 	}
 }
