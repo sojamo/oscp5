@@ -2,9 +2,12 @@
 .DS_Store
 build/
 bin/
-NOTES.md
 .gradle
+.vscode
+.idea
 
+NOTES.md
+TODO.md
 
 target/
 .classpath
@@ -14,9 +17,6 @@ target/
 distribution/
 lib/
 data/
-TODO
-NOTES
-bin/
 reference/
 materials/
 
