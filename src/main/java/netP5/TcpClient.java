@@ -1,128 +1,169 @@
-/**
- * A network library for processing which supports UDP, TCP and Multicast.
- *
- * ##copyright##
- *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
- * 
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
- * 
- * You should have received a copy of the GNU Lesser General
- * Public License along with this library; if not, write to the
- * Free Software Foundation, Inc., 59 Temple Place, Suite 330,
- * Boston, MA  02111-1307  USA
- * 
- * @author		##author##
- * @modified	##date##
- * @version		##version##
- */
-
 package netP5;
 
 import java.io.IOException;
-import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
-import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
-import java.nio.channels.ReadableByteChannel;
 import java.nio.channels.SelectionKey;
-import java.nio.channels.Selector;
-import java.nio.channels.SocketChannel;
-import java.nio.channels.WritableByteChannel;
 import java.util.Collection;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Observable;
-import java.util.Set;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicLong;
+import java.util.List;
 
-public final class TcpClient extends Observable implements Runnable, Transmitter {
+import oscP5.OscMessage;
+import oscP5.OscPacket;
+import oscP5.NetAddress;
 
-	/*
-	 * adapted from http://bobah.net/d4d/source-code/networking/tcp-client-java-nio
-	 */
+public final class TcpClient implements Runnable, ITransfer {
 
-	public TcpClient(String theHost, int thePort) {
+	public TcpClient(final String theHost,
+			final int thePort)
+	{
 		/** TODO re-implement */
 	}
 
-	public TcpClient(int thePort) {
+	public TcpClient(final int thePort)
+	{
 		/** TODO re-implement */
 	}
 
-	public void join() throws InterruptedException {
+	public void join() throws InterruptedException
+	{
 		/** TODO re-implement */
 	}
 
-	public void stop() throws IOException, InterruptedException {
+	public void stop() throws IOException, InterruptedException
+	{
 		/** TODO re-implement */
 	}
 
-	public boolean close() {
-		/** TODO re-implement */
-		return false;
-	}
-
-	public boolean isConnected() {
+	public boolean close()
+	{
 		/** TODO re-implement */
 		return false;
 	}
 
-	public boolean send(byte[] theBytes) {
+	public boolean isConnected()
+	{
 		/** TODO re-implement */
 		return false;
 	}
 
-	public boolean send(byte[] theContent, Collection<InetSocketAddress> theAddress) {
+	public boolean send(final byte[] theBytes)
+	{
 		/** TODO re-implement */
 		return false;
 	}
 
-	public boolean send(byte[] theContent, String theHost, int thePort) {
+	public boolean send(final byte[] theContent,
+			final String theHost,
+			final int thePort)
+	{
 		/** TODO re-implement */
 		return false;
 	}
 
-	public boolean send(byte[] theContent, SocketAddress... theAddress) {
-		/** TODO re-implement */
-		return false;
+	public void send(final ByteBuffer buffer) throws InterruptedException, IOException
+	{
 	}
 
-	public void send(ByteBuffer buffer) throws InterruptedException, IOException {
-	}
-
-	protected void onRead(ByteBuffer buffer, SelectionKey theKey) {
+	protected void onRead(final ByteBuffer buffer,
+			final SelectionKey theKey)
+	{
 		/** TODO re-implement */
 	}
 
-	protected void onConnected(SelectionKey theKey) {
+	protected void onConnected(final SelectionKey theKey)
+	{
 		/** TODO re-implement */
 	}
 
-	protected void onDisconnected(SelectionKey theKey) {
+	protected void onDisconnected(final SelectionKey theKey)
+	{
 		/** TODO re-implement */
 	}
 
-	public void run() {
+	public void run()
+	{
 	}
 
-	public SocketAddress getAddress() {
+	public SocketAddress getAddress()
+	{
 		/** TODO re-implement */
 		return null;
 	}
 
-	public String toString() {
+	public String toString()
+	{
 		/** TODO re-implement */
 		return null;
+	}
+
+	@Override
+	public boolean send(final byte[] theContent,
+			final Collection<InetSocketAddress> theAddress)
+	{
+		/** TODO re-implement */
+		return false;
+	}
+
+	@Override
+	public boolean send(final byte[] theContent,
+			final SocketAddress... theAddress)
+	{
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public void send(final NetAddress theIAddress,
+			final OscPacket thePacket)
+	{
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public void send(final NetAddress theIAddress,
+			final byte[] theBytes)
+	{
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public void process(final byte[] theData,
+			final NetAddress theSender)
+	{
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public void immediately(final OscMessage theMessage)
+	{
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public void later(final OscMessage theMessage,
+			final long theMillis)
+	{
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public List<OscMessage> consume()
+	{
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public boolean isRunning()
+	{
+		// TODO Auto-generated method stub
+		return false;
 	}
 
 }
