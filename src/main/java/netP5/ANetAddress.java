@@ -1,57 +1,60 @@
+
 package netP5;
 
 import java.net.InetAddress;
-import java.net.InetSocketAddress;
 
-public class ANetAddress extends InetSocketAddress {
+public abstract class ANetAddress {
 
-    static public final String LOCALHOST_ADDR = "localhost";
-    static public String DEFAULT_ADDR = "0.0.0.0";
-
-    /**
-     * TODO re-implement
-     */
-    protected boolean isValid = true;
-
-    public ANetAddress(final int thePort) {
-        this(LOCALHOST_ADDR, thePort);
+    public ANetAddress() {
     }
 
-    public ANetAddress(final String theAddress,
-                       final int thePort) {
-        super(theAddress, thePort);
+    public abstract InetAddress getInetAddress();
+
+    public abstract String getAddress();
+
+    public abstract int getPort();
+
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+
+        if (o == null) {
+            return false;
+        }
+
+        if(!(o instanceof ANetAddress)) {
+            return false;
+        }
+
+        ANetAddress addr = (ANetAddress) o;
+        return getAddress().equals(addr.getAddress()) && getPort() == addr.getPort();
     }
 
-    public ANetAddress(final ANetAddress theNetAddress) {
-        this(theNetAddress.getAddress(), theNetAddress.getPort());
-    }
-
-    public ANetAddress(final InetAddress theInetAddress,
-                       final int thePort) {
-        super(theInetAddress, thePort);
-    }
-
-    public String getHost() {
-        return super.getHostName();
-    }
-
+    @Deprecated
     public InetAddress inetaddress() {
-        return super.getAddress();
+        return getInetAddress();
     }
 
+    @Deprecated
     public String address() {
-        return getHost();
+        return getAddress();
     }
 
+    @Deprecated
     public int port() {
         return getPort();
     }
 
+    @Deprecated
     public boolean isvalid() {
         return isValid;
     }
 
-    public String toString() {
-        return "{ class: NetAddress, address: " + getHost() + ", port: " + getPort() + "}";
-    }
+    @Deprecated
+    protected boolean isValid = true;
+
+
 }

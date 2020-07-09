@@ -2,10 +2,7 @@ package oscP5;
 
 import java.util.List;
 
-public abstract class ABundle extends OscPacket {
-
-    protected static final int BUNDLE_HEADER_SIZE = 16;
-    protected static final byte[] BUNDLE_AS_BYTES = {0x23, 0x62, 0x75, 0x6E, 0x64, 0x6C, 0x65, 0x00};
+abstract class ABundle extends OscPacket {
 
     public abstract OscBundle add(final OscPacket... theOscPackets);
 
@@ -23,10 +20,17 @@ public abstract class ABundle extends OscPacket {
 
     public abstract List<OscPacket> getAll();
 
+    public abstract OscBundle setTimetag(final OscTimetag theTimetag);
+
+    public abstract OscTimetag getTimetag();
+
+    /* TODO check backwards-comp., remove and use setTimetag(OscTimetag) instead */
     public abstract OscBundle setTimetag(final long theTime);
 
-    static public long now() {
-        return System.currentTimeMillis();
+    static public final long now() {
+        OscTimetag t = new OscTimetag();
+        t.setFutureTimeMillis(1);
+        return t.toTimeMillis();
     }
 
     @Deprecated

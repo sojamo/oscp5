@@ -1,3 +1,5 @@
+
+
 package netP5;
 
 import oscP5.NetAddress;
@@ -21,16 +23,10 @@ public abstract class ATransfer implements ITransfer {
 
     static final Logger Log = Logger.getLogger(ATransfer.class.getName());
 
-    /*
-     * start a scheduled executor service to invoke time-tagged
-     * messages in the future
-     */
+    /* start a scheduled executor service to invoke time-tagged messages in the future */
     final private ScheduledExecutorService schedule = Executors.newScheduledThreadPool(1);
 
-    /*
-     * initialize a queue to store all incoming OSC messages
-     * before they are published
-     */
+    /* initialize a queue to store all incoming OSC messages before they are published */
     final private ArrayBlockingQueue<OscMessage> queue;
 
     public ATransfer(final int theQueueSize) {
@@ -69,17 +65,20 @@ public abstract class ATransfer implements ITransfer {
 
             /* schedule the messages that were received */
             for (final Map.Entry<OscMessage, Long> entry : collect.entrySet()) {
+                final long t = entry.getValue();
                 final OscMessage m = entry.getKey();
-                m.setReceivedFrom(theReceivedFrom);
-                if (entry.getValue() == OscTimetag.TIMETAG_NOW) {
+                m.setFrom(theReceivedFrom);
+                /* if time has passed or timetag is default 1, then publish immediately */
+                if (t == OscTimetag.TIMETAG_NOW || t <= 0) {
                     immediately(m);
                 } else {
-                    later(m, entry.getValue());
+                    /* if timetag is set to be a future time, then schedule to be published later */
+                    later(m, t);
                 }
             }
         } else {
             final OscMessage m = OscParser.bytesToMessage(theBytes);
-            m.setReceivedFrom(theReceivedFrom);
+            m.setFrom(theReceivedFrom);
             immediately(m);
         }
 
@@ -88,21 +87,16 @@ public abstract class ATransfer implements ITransfer {
          * to the Transfer implementation
          */
 
-        /**
-         * TODO notify listeners here, we are not using Observer
-         * anymore since it is deprecated with Java 9
-         */
+        /* TODO notify listeners here, we are not using Observer anymore since it is deprecated with Java 9 */
 
         // setChanged();
         // notifyObservers(theBytes);
 
-        /*
-         * messages can now be consumed by calling @see #consume()
-         */
+        /* messages can now be consumed by calling @see #consume() */
     }
 
     @Override
-    public List<OscMessage> consume() {
+    public List<OscMessage> publish() {
         final List<OscMessage> messages = new ArrayList<>();
         queue.drainTo(messages);
         return messages;
@@ -116,14 +110,14 @@ public abstract class ATransfer implements ITransfer {
         final Pattern p = Pattern.compile("^" + domain + "|" + localhost + "|" + ip);
         try {
             for (final Enumeration<NetworkInterface> item = NetworkInterface.getNetworkInterfaces();
-            /** iterate interfaces */
+                /* iterate interfaces */
                  item.hasMoreElements(); ) {
                 final NetworkInterface intf = item.nextElement();
                 for (final Enumeration<InetAddress> enumIpAddr = intf.getInetAddresses();
-                /** iterate addresses */
+                    /* iterate addresses */
                      enumIpAddr.hasMoreElements(); ) {
                     final String addr = enumIpAddr.nextElement().toString().replaceAll("/", "");
-                    /** extract ip address and ignore other interfaces */
+                    /* extract ip address and ignore other interfaces */
                     if (p.matcher(addr).matches()) {
                         interfaces.put(intf.getName(), addr);
                     }
