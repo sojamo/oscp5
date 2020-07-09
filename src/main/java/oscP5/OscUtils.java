@@ -6,16 +6,12 @@ import java.util.Calendar;
 import java.util.Collections;
 import java.util.List;
 
-@SuppressWarnings("ALL")
+
 public class OscUtils {
 
     static public final String delimiter = " ";
 
     static public final char[] hexDigits = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'};
-
-    static protected int align(int theInt) {
-        return (4 - (theInt % 4));
-    }
 
     static public int i(final Object o) {
         return i(o, Integer.MIN_VALUE);
@@ -200,6 +196,7 @@ public class OscUtils {
         try {
             Thread.sleep(theMillis);
         } catch (final Exception e) {
+            OscP5.printStackTrace(e);
         }
     }
 
@@ -219,14 +216,14 @@ public class OscUtils {
             out.writeObject(o);
             bytes = bos.toByteArray();
         } catch (Exception e) {
-            e.printStackTrace();
+            OscP5.printStackTrace(e);
         } finally {
             try {
                 assert out != null;
                 out.close();
                 bos.close();
             } catch (IOException e) {
-                e.printStackTrace();
+                OscP5.printStackTrace(e);
             }
         }
         return bytes;
@@ -239,17 +236,15 @@ public class OscUtils {
         try {
             in = new ObjectInputStream(bis);
             o = in.readObject();
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
+        } catch (IOException | ClassNotFoundException e) {
+            OscP5.printStackTrace(e);
         } finally {
             try {
                 bis.close();
                 assert in != null;
                 in.close();
             } catch (IOException e) {
-                e.printStackTrace();
+                OscP5.printStackTrace(e);
             }
         }
         return o;
@@ -257,8 +252,10 @@ public class OscUtils {
 
     static public String time() {
         final Calendar now = Calendar.getInstance();
-        return now.get(Calendar.HOUR_OF_DAY) + ":" + now.get(Calendar.MINUTE) + ":" + now.get(Calendar.SECOND) + "."
-                + now.get(Calendar.MILLISECOND);
+        return now.get(Calendar.HOUR_OF_DAY) +
+                ":" + now.get(Calendar.MINUTE) +
+                ":" + now.get(Calendar.SECOND) +
+                "." + now.get(Calendar.MILLISECOND);
     }
 
 }
