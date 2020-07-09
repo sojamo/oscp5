@@ -8,25 +8,36 @@ import static org.junit.Assert.assertTrue;
 
 public class OscParserTest {
 
-    final OscMessage m1 = new OscMessage("/m1", 1, 2.0f, 3.0d, 4l, "hello", 'c', new byte[] { 0x00, 0x01, 0x02 },
-            Arrays.asList(1, Arrays.asList(100, 200), 3), true, false, null, OscImpulse.IMPULSE);
-    final String t1 = "ifdhscb[i[ii]i]TFNI";
+    final OscMessage m1 = new OscMessage(
+            "/m1",
+            1, 2.0f, 3.0d, 4L,
+            "hello", 'c',
+            new byte[] { 0x00, 0x01, 0x02 },
+            Arrays.asList(1, Arrays.asList(100, 200), 3),
+            true, false,
+            null,
+            OscImpulse.IMPULSE,
+            new OscSymbol("mySymbol"),
+            new OscMidi().setPortId(10).setStatus(144).setData1(100).setData2(127),
+            new OscRgba().setColor(128,255,64,255)
+            );
+    final String t1 = "ifdhscb[i[ii]i]TFNISmr";
 
     @Test
-    public void testGetTypetag() throws Exception {
-        assertEquals(m1.getTypetag(), t1);
+    public void testGetTypetag()  {
+        assertEquals(t1, m1.getTypetag());
     }
 
     @Test
-    public void testMessageToByteArray() throws Exception {
+    public void testMessageToByteArray()  {
         byte[] bytes = OscParser.messageToBytes(m1); /* message to bytes */
         OscMessage m2 = OscParser.bytesToMessage(bytes); /* bytes to message */
-        assertTrue(m1.getAddress().equals(m2.getAddress()));
-        assertTrue(m1.getTypetag().equals(m2.getTypetag()));
+        assertEquals(m1.getAddress(), m2.getAddress());
+        assertEquals(m1.getTypetag(),m2.getTypetag());
     }
 
     @Test
-    public void testInvalidOscMessage() throws Exception {
+    public void testInvalidOscMessage() {
 
         /* address pattern is missing the forward-slash */
         byte[] b1 = "abc".getBytes();
@@ -48,10 +59,7 @@ public class OscParserTest {
         OscMessage m4 = OscParser.bytesToMessage(b4);
         assertTrue(m4 instanceof InvalidOscMessage);
 
-        /*
-         * incomplete message, address pattern passes, typetag malformed, and data
-         * partially missing
-         */
+        /* incomplete message, address pattern passes, typetag malformed, and data partially missing */
         byte[] b5 = "/abc\0\0\0iifabcd".getBytes();
         OscMessage m5 = OscParser.bytesToMessage(b5);
         assertTrue(m5 instanceof InvalidOscMessage);
@@ -60,10 +68,10 @@ public class OscParserTest {
         byte[] b6 = "/abc\0\0\0\0,ii\0abcd".getBytes();
         OscMessage m6 = OscParser.bytesToMessage(b6);
         OscMessage r6 = new OscMessage("/abc", 1633837924, 0);
-        assertTrue(m6.getAddress().equals(r6.getAddress()));
-        assertTrue(m6.getTypetag().equals(r6.getTypetag()));
-        assertTrue(m6.get(0).equals(r6.get(0)));
-        assertTrue(m6.get(1).equals(r6.get(1)));
+        assertEquals(m6.getAddress(), r6.getAddress());
+        assertEquals(m6.getTypetag(), r6.getTypetag());
+        assertEquals(m6.getIntAt(0), r6.getIntAt(0));
+        assertEquals(m6.getIntAt(1), r6.getIntAt(1));
 
         /* address pattern and typetag pass, data is incomplete and fails */
         byte[] b7 = "/abc\0\0\0\0,ifdhscb[i[ii]i]TFNI\0\0\0\0abcd".getBytes();
