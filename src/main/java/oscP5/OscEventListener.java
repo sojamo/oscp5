@@ -1,7 +1,13 @@
 package oscP5;
 
-public interface OscEventListener {
+/**
+ * An interface that can be added to OscP5 to push forward OscMessages when received.
+ */
+public abstract class OscEventListener {
 
-	void oscEvent(OscMessage theMessage);
+    public abstract void oscEvent(OscMessage theMessage);
 
+    public String toString() {
+        return "{class: OscEventListener}";
+    }
 }

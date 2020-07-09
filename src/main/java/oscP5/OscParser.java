@@ -4,6 +4,11 @@ import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+/**
+ * Parses incoming packets and constructs outgoing packets.
+ * <p>
+ * OSC specifications from the NIME 2009 paper https://www.nime.org/proceedings/2009/nime2009_116.pdf
+ */
 public class OscParser {
 
     static final private byte KOMMA = 0x2C;
@@ -11,7 +16,6 @@ public class OscParser {
 
     static public String getTypetag(final OscMessage theMessage) {
         return getTypetag(new StringBuilder(), theMessage.getArgumentsAsList());
-
     }
 
     static protected String getTypetag(final StringBuilder theTypetag,
@@ -37,6 +41,12 @@ public class OscParser {
             } else if (o instanceof OscImpulse)
                 /* Impulse */ {
                 theTypetag.append('I');
+            } else if (o instanceof OscMidi)
+                /* String */ {
+                theTypetag.append('m');
+            } else if (o instanceof OscRgba)
+                /* String */ {
+                theTypetag.append('r');
             } else if (o instanceof OscSymbol)
                 /* Symbol */ {
                 theTypetag.append('S');
@@ -137,7 +147,7 @@ public class OscParser {
             }
         }
 
-        /* getting the address pattern */
+        /* getting the OSC address */
         final String address = (new String(Arrays.copyOfRange(theData, 0, n))).trim();
 
         /* if the komma has been found, extract the typetag */
@@ -150,22 +160,20 @@ public class OscParser {
             }
         }
 
-        /*
-         * now start converting bytes to osc arguments starting from
-         * index n
-         */
+        /* now start converting bytes to osc arguments starting from index n */
         n = (n + (4 - n % 4));
 
         final List<Object> arguments = new ArrayList<>();
 
-        /*
-         * TODO if there is a better way to avoid checking for
-         * ArrayIndexOutOfBoundsException, do implement
-         */
+        /* TODO if there is a better way to avoid checking for ArrayIndexOutOfBoundsException, do implement */
         try {
             bytesToArguments(theData, n, typetag.toString(), arguments);
         } catch (final ArrayIndexOutOfBoundsException e) {
-            Log.log(Level.WARNING, "OscParser.bytesToMessage", e.getMessage());
+            Log.log(Level.WARNING, "OscParser.bytesToMessage " +
+                    e.getMessage() +
+                    ". OscMessage probably incomplete, returning InvalidOscMessage."
+            );
+            OscP5.printStackTrace(e);
             return invalid(theData);
         }
 
@@ -184,22 +192,33 @@ public class OscParser {
         for (; index < length; index++) {
             final char c = theTypetag.charAt(index);
             switch (c) {
-                case ('i'): /* integer */
-                    theArguments.add(i(Arrays.copyOfRange(theByteArray, byteArrayPosition, byteArrayPosition += 4)));
+                case ('b'): /* blob */
+                    final int len = i(Arrays.copyOfRange(theByteArray, byteArrayPosition, byteArrayPosition += 4));
+                    theArguments.add(bytes(Arrays.copyOfRange(theByteArray, byteArrayPosition, byteArrayPosition += len)));
+                    final int mod = len % 4;
+                    byteArrayPosition += mod == 0 ? 0 : 4 - mod;
                     break;
-                case ('h'): /* long */
-                    theArguments.add(l(Arrays.copyOfRange(theByteArray, byteArrayPosition, byteArrayPosition += 8)));
+                case ('c'): /* character */
+                    final char chr = c(Arrays.copyOfRange(theByteArray, byteArrayPosition, byteArrayPosition += 4));
+                    theArguments.add(chr);
                     break;
-                case ('t'): /* Timetag */
-                    final OscTimetag timetag = new OscTimetag();
-                    timetag.setTimetag(l(Arrays.copyOfRange(theByteArray, byteArrayPosition, byteArrayPosition += 8)));
-                    theArguments.add(timetag);
+                case ('d'): /* double */
+                    theArguments.add(d(Arrays.copyOfRange(theByteArray, byteArrayPosition, byteArrayPosition += 8)));
                     break;
                 case ('f'): /* float */
                     theArguments.add(f(Arrays.copyOfRange(theByteArray, byteArrayPosition, byteArrayPosition += 4)));
                     break;
-                case ('d'): /* double */
-                    theArguments.add(d(Arrays.copyOfRange(theByteArray, byteArrayPosition, byteArrayPosition += 8)));
+                case ('h'): /* long */
+                    theArguments.add(l(Arrays.copyOfRange(theByteArray, byteArrayPosition, byteArrayPosition += 8)));
+                    break;
+                case ('i'): /* integer */
+                    theArguments.add(i(Arrays.copyOfRange(theByteArray, byteArrayPosition, byteArrayPosition += 4)));
+                    break;
+                case ('m'): /* midi */
+                    theArguments.add(new OscMidi(bytes(Arrays.copyOfRange(theByteArray, byteArrayPosition, byteArrayPosition += 4))));
+                    break;
+                case ('r'): /* rgba */
+                    theArguments.add(new OscRgba(i(Arrays.copyOfRange(theByteArray, byteArrayPosition, byteArrayPosition += 4))));
                     break;
                 case ('S'): /* Symbol */
                 case ('s'): /* String */
@@ -217,27 +236,22 @@ public class OscParser {
                     theArguments.add(c == 's' ? buffer.toString() : new OscSymbol(buffer.toString()));
                     byteArrayPosition = n1 + (4 - buffer.length() % 4);
                     break;
-                case ('c'): /* character */
-                    final char chr = c(Arrays.copyOfRange(theByteArray, byteArrayPosition, byteArrayPosition += 4));
-                    theArguments.add(chr);
+                case ('t'): /* Timetag */
+                    final OscTimetag timetag = new OscTimetag();
+                    timetag.setTimetag(l(Arrays.copyOfRange(theByteArray, byteArrayPosition, byteArrayPosition += 8)));
+                    theArguments.add(timetag);
                     break;
-                case ('b'): /* blob */
-                    final int len = i(Arrays.copyOfRange(theByteArray, byteArrayPosition, byteArrayPosition += 4));
-                    theArguments.add(bytes(Arrays.copyOfRange(theByteArray, byteArrayPosition, byteArrayPosition += len)));
-                    final int mod = len % 4;
-                    byteArrayPosition += mod == 0 ? 0 : 4 - mod;
-                    break;
-                case ('N'): /* nil */
-                    theArguments.add(null);
+                case ('F'): /* false */
+                    theArguments.add(false);
                     break;
                 case ('I'): /* impulse */
                     theArguments.add(OscImpulse.IMPULSE);
                     break;
+                case ('N'): /* nil */
+                    theArguments.add(null);
+                    break;
                 case ('T'): /* true */
                     theArguments.add(true);
-                    break;
-                case ('F'): /* false */
-                    theArguments.add(false);
                     break;
                 case ('['): /* array */
                     final List<Object> sub = new ArrayList<>();
@@ -275,74 +289,81 @@ public class OscParser {
         for (final Object o : theData) {
             if (o == null) {
                 theTypetag.append('N');
-            } else if (o instanceof Integer)
-                /* Integer */ {
-                theTypetag.append('i');
-                arguments = append(arguments, toBytes(((Integer) o)));
-            } else if (o instanceof Float)
-                /* Float */ {
-                theTypetag.append('f');
-                arguments = append(arguments, toBytes(Float.floatToIntBits(((Float) o))));
-            } else if (o instanceof Double)
-                /* Double */ {
-                theTypetag.append('d');
-                arguments = append(arguments, toBytes(Double.doubleToLongBits(((Double) o))));
-            } else if (o instanceof Long)
-                /* Long */ {
-                theTypetag.append('h');
-                arguments = append(arguments, toBytes((Long) o));
-            } else if (o instanceof OscTimetag)
-                /* Timetag */ {
-                theTypetag.append('t');
-                arguments = append(arguments, ((OscTimetag) o).getBytes());
-            } else if (o instanceof OscImpulse)
-                /* Impulse */ {
-                theTypetag.append('I');
-            } else if (o instanceof OscSymbol)
-                /* Symbol */ {
-                theTypetag.append('S');
-                arguments = append(arguments, o.toString().getBytes());
-                arguments = append(arguments, zeros(o.toString().getBytes().length));
-            } else if (o instanceof Character)
-                /* Character */ {
-                theTypetag.append('c');
-                final int chr = (int) ((Character) o);
-                arguments = append(arguments, toBytes(chr));
-            } else if (o instanceof byte[])
-                /* blob */ {
+            } else if (o instanceof byte[]) {
+                /* blob */
                 theTypetag.append('b');
                 final byte[] bytes = (byte[]) o;
                 final int len = bytes.length;
                 arguments = append(arguments, toBytes(len));
                 arguments = append(arguments, bytes);
                 arguments = append(arguments, zeros(len));
-            } else if (o instanceof String)
-                /* String */ {
+            } else if (o instanceof Character) {
+                /* Character */
+                theTypetag.append('c');
+                final int chr = (int) ((Character) o);
+                arguments = append(arguments, toBytes(chr));
+            } else if (o instanceof Double) {
+                /* Double */
+                theTypetag.append('d');
+                arguments = append(arguments, toBytes(Double.doubleToLongBits(((Double) o))));
+            } else if (o instanceof Float) {
+                /* Float */
+                theTypetag.append('f');
+                arguments = append(arguments, toBytes(Float.floatToIntBits(((Float) o))));
+            } else if (o instanceof Long) {
+                /* Long */
+                theTypetag.append('h');
+                arguments = append(arguments, toBytes((Long) o));
+            } else if (o instanceof Integer) {
+                /* Integer */
+                theTypetag.append('i');
+                arguments = append(arguments, toBytes(((Integer) o)));
+            } else if (o instanceof OscMidi) {
+                /* Midi */
+                theTypetag.append('m');
+                arguments = append(arguments, ((OscMidi) o).getBytes());
+            } else if (o instanceof OscRgba) {
+                /* RGBA */
+                theTypetag.append('r');
+                arguments = append(arguments, ((OscRgba) o).getBytes());
+            } else if (o instanceof String) {
+                /* String */
                 theTypetag.append('s');
                 arguments = append(arguments, o.toString().getBytes());
                 arguments = append(arguments, zeros(o.toString().getBytes().length));
-            } else if (o instanceof Boolean)
-                /* Boolean */ {
+            } else if (o instanceof OscTimetag) {
+                /* Timetag */
+                theTypetag.append('t');
+                arguments = append(arguments, ((OscTimetag) o).getBytes());
+            } else if (o instanceof OscImpulse) {
+                /* Impulse */
+                theTypetag.append('I');
+            } else if (o instanceof OscSymbol) {
+                /* Symbol */
+                theTypetag.append('S');
+                arguments = append(arguments, ((OscSymbol) o).getValue().getBytes());
+                arguments = append(arguments, zeros(((OscSymbol) o).getValue().getBytes().length));
+            } else if (o instanceof Boolean) {
+                /* Boolean */
                 theTypetag.append((boolean) o ? 'T' : 'F');
-            } else if (o instanceof List)
-                /* Collection */ {
+            } else if (o instanceof List) {
+                /* Collection */
                 theTypetag.append('[');
                 arguments = append(arguments, argumentsToBytes(theTypetag, (List<?>) o));
                 theTypetag.append(']');
             } else {
-                /*
-                 * TODO should arrays be accepted, if yes, how? Treat as
-                 * collection or iterate over array?
-                 */
-                Log.log(Level.WARNING, "OscParser.argumentsToBytes:",
-                        "type not supported " + o.getClass().getSimpleName());
+                /* TODO should arrays be accepted, if yes, how? Treat as collection or iterate over array? */
+                Log.log(Level.WARNING,
+                        "OscParser.argumentsToBytes:",
+                        "type not supported " + o.getClass().getSimpleName()
+                );
             }
         }
         return arguments;
     }
 
     static public byte[] bytes(final Object o) {
-        return (o != null && o instanceof byte[]) ? (byte[]) o : new byte[0];
+        return (o instanceof byte[]) ? (byte[]) o : new byte[0];
     }
 
     static public int i(final byte[] abyte0) {

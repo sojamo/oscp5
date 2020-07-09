@@ -1,24 +1,26 @@
 package oscP5;
 
+/**
+ * The base class for OscMessage and OscBundle.
+ */
 public abstract class OscPacket extends APacket {
 
-	public abstract byte[] getBytes();
+    public abstract byte[] getBytes();
 
-	public int getPort()
-	{
-		return super.port();
-	}
+    @Override
+    public NetAddress netAddress() {
+        return null;
+    }
 
-	@Override
-	public NetAddress netAddress()
-	{
+    @Override
+	public String getAddress() {
 		return null;
 	}
 
 	@Override
-	public String getAddress()
-	{
-		return null;
-	}
+    public int getPort() {
+        return super.port();
+    }
+
 
 }
