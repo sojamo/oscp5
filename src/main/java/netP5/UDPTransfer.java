@@ -1,11 +1,11 @@
 package netP5;
 
 import oscP5.NetAddress;
+import oscP5.OscP5;
 import oscP5.OscPacket;
 
 import java.io.IOException;
 import java.net.*;
-import java.util.Collection;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.logging.Level;
@@ -28,22 +28,22 @@ public class UDPTransfer extends ATransfer {
      * is used almost universally on access networks.
      */
 
-    public UDPTransfer(final String theAddress,
+    public UDPTransfer(final String theHostAddress,
                        final int thePort) {
-        this(theAddress, thePort, DEFAULT_PACKET_SIZE);
+        this(theHostAddress, thePort, DEFAULT_PACKET_SIZE);
     }
 
-    public UDPTransfer(final String theAddress,
+    public UDPTransfer(final String theHostAddress,
                        final int thePort,
                        final int thePacketSize) {
         super(2048);
         packetSize = thePacketSize;
-
         InetAddress networkAddress = null;
         try {
-            networkAddress = InetAddress.getByName(theAddress);
+            networkAddress = InetAddress.getByName(theHostAddress);
         } catch (final Exception e) {
-            Log.log(Level.WARNING, "Network address " + theAddress + " not available" + e.getMessage());
+            Log.log(Level.WARNING, "Network address " + theHostAddress + " not available" + e.getMessage());
+            OscP5.printStackTrace(e);
         }
         try {
 
@@ -56,7 +56,7 @@ public class UDPTransfer extends ATransfer {
             }
 
             socket.bind(new InetSocketAddress(networkAddress, thePort));
-            Log.log(Level.INFO, "Binding to address " + networkAddress + ":" + thePort);
+            Log.log(Level.CONFIG, "Binding to address " + networkAddress + ":" + thePort);
 
             /*
              * alternatively consider to use java.nio.channels here
@@ -64,9 +64,7 @@ public class UDPTransfer extends ATransfer {
              */
 
             try {
-
-                Log.log(Level.INFO, "UDP socket running on port " + thePort);
-
+                Log.log(Level.CONFIG, "UDP socket running on port " + thePort);
                 ExecutorService exec = Executors.newFixedThreadPool(1);
                 exec.execute(new Runnable() {
                     public void run() {
@@ -81,17 +79,19 @@ public class UDPTransfer extends ATransfer {
                                 process(data, addr);
                             }
                         } catch (final IOException e) {
-                            Log.log(Level.WARNING, "UDP socket running on port " + thePort + ", " + e.getMessage(),
-                                    " can't receive messages.");
+                            Log.log(Level.INFO, "UDP socket running on port " + thePort + ", " + e.getMessage());
+                            OscP5.printStackTrace(e);
                         }
                     }
                 });
 
             } catch (final Exception e) {
                 Log.log(Level.WARNING, "Can't create socket, " + e.getMessage());
+                OscP5.printStackTrace(e);
             }
         } catch (final SocketException e1) {
             Log.log(Level.WARNING, "Can't create socket, " + e1.getMessage());
+            OscP5.printStackTrace(e1);
         }
     }
 
@@ -101,55 +101,30 @@ public class UDPTransfer extends ATransfer {
         try {
             send(theIAddress, thePacket.getBytes());
         } catch (final NullPointerException npe) {
-            Log.log(Level.WARNING, "Can't send OscPacket to " + theIAddress.getHost() + ", " + npe.getMessage());
+            Log.log(Level.WARNING, "Can't send OscPacket to " + theIAddress.getAddress() + ", " + npe.getMessage());
+            OscP5.printStackTrace(npe);
         }
     }
 
     @Override
-    public void send(final NetAddress theIAddress,
+    public void send(final NetAddress theAddress,
                      final byte[] theBytes) {
-        final DatagramPacket myPacket = new DatagramPacket(theBytes, theBytes.length,
-                theIAddress.getAddress(), theIAddress.getPort());
+        final DatagramPacket myPacket = new DatagramPacket(theBytes,
+                theBytes.length,
+                theAddress.getInetAddress(),
+                theAddress.getPort());
 
         try {
             socket.send(myPacket);
         } catch (final Exception e) {
-            Log.log(Level.WARNING,
-                    "Can't send bytes to " + myPacket.getAddress().getCanonicalHostName() + ", " + e.getMessage());
+            Log.log(Level.WARNING, "Can't send bytes to " + myPacket.getAddress().getCanonicalHostName() + ", " + e.getMessage());
+            OscP5.printStackTrace(e);
         }
     }
 
     @Override
     public boolean isRunning() {
         return !socket.isClosed();
-    }
-
-    @Override
-    public boolean send(byte[] theContent) {
-        // TODO Auto-generated method stub
-        return false;
-    }
-
-    @Override
-    public boolean send(byte[] theContent,
-                        Collection<InetSocketAddress> theAddress) {
-        // TODO Auto-generated method stub
-        return false;
-    }
-
-    @Override
-    public boolean send(byte[] theContent,
-                        String theHost,
-                        int thePort) {
-        // TODO Auto-generated method stub
-        return false;
-    }
-
-    @Override
-    public boolean send(byte[] theContent,
-                        SocketAddress... theAddress) {
-        // TODO Auto-generated method stub
-        return false;
     }
 
     @Override
