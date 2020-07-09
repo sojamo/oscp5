@@ -8,31 +8,26 @@ public class OscTimetag {
     static public final long TIMETAG_NOW = 1L;
     private long timetag = TIMETAG_NOW;
 
-    public boolean isImmediate()
-    {
+    public boolean isImmediate() {
         return (timetag == TIMETAG_NOW);
     }
 
-    public OscTimetag setTimetag(final long theTimetag)
-    {
+    public OscTimetag setTimetag(final long theTimetag) {
         timetag = theTimetag;
         return this;
     }
 
-    public OscTimetag setTimetag(final OscTimetag theTimetag)
-    {
-        timetag = theTimetag.getTimetag();
+    public OscTimetag setTimetag(final OscTimetag theTimetag) {
+        timetag = theTimetag.getValue();
         return this;
     }
 
-    public OscTimetag setTimeMillis(final long theMillis)
-    {
-        timetag = fromTimeMillisToTimetag(theMillis);
+    public OscTimetag setTimeMillis(final long theMillis) {
+        timetag = OscTimetag.fromTimeMillisToTimetag(theMillis);
         return this;
     }
 
-    static public long fromTimeMillisToTimetag(long theMillis)
-    {
+    static public long fromTimeMillisToTimetag(long theMillis) {
         if (theMillis == TIMETAG_NOW) {
             return TIMETAG_NOW;
         } else {
@@ -42,35 +37,29 @@ public class OscTimetag {
         }
     }
 
-    static public OscTimetag inFutureTimeMillis(final long t)
-    {
+    static public OscTimetag inFutureTimeMillis(final long t) {
         OscTimetag tag = new OscTimetag();
         return tag.setFutureTimeMillis(t);
     }
 
-    public OscTimetag setFutureTimeMillis(final long t)
-    {
+    public OscTimetag setFutureTimeMillis(final long t) {
         setTimeMillis(System.currentTimeMillis() + (t < 0 ? 0 : t));
         return this;
     }
 
-    public long getTimetag()
-    {
+    public long getValue() {
         return timetag;
     }
 
-    public Date getDate()
-    {
+    public Date getDate() {
         return new Date(toTimeMillis());
     }
 
-    public long toTimeMillis()
-    {
+    public long toTimeMillis() {
         return toTimeMillis(timetag);
     }
 
-    static public long toTimeMillis(long theTime)
-    {
+    static public long toTimeMillis(long theTime) {
         final long FILTER_LOWER_32 = 0xFFFFFFFFL;
         final long fraction = theTime & FILTER_LOWER_32;
         final long seconds = theTime >>> 32;
@@ -80,15 +69,19 @@ public class OscTimetag {
         return t <= TIMETAG_NOW ? TIMETAG_NOW : t;
     }
 
-    public byte[] getBytes()
-    {
+    public byte[] getBytes() {
         return OscParser.toBytes(timetag);
     }
 
+    /* TODO implement equals() */
+
     @Override
-    public String toString()
-    {
-        return "{ class: OscTimetag, long:" + timetag + ", date:" + getDate() + ", isNow:" + isImmediate() + " }";
+    public String toString() {
+        return "{ class: OscTimetag" +
+                ", value:" + timetag +
+                ", date:" + getDate() +
+                ", when:" + (isImmediate() ? "now":"later") +
+                " }";
     }
 
 }
