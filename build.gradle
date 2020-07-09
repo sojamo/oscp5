@@ -1,5 +1,4 @@
 plugins {
-    // Apply the java-library plugin to add support for Java Library
     id 'java-library'
 }
 
@@ -9,24 +8,15 @@ java {
 }
 
 repositories {
-    // Use jcenter for resolving dependencies.
-    // You can declare any Maven/Ivy/file repository here.
     mavenCentral()
 }
 
 dependencies {
-    // This dependency is exported to consumers, that is to say found on their compile classpath.
-    api 'org.apache.commons:commons-math3:3.6.1'
-
-    // This dependency is used internally, and not exposed to consumers on their own compile classpath.
-    implementation 'com.google.guava:guava:29.0-jre'
-
     // Use JUnit test framework
     testImplementation 'junit:junit:4.13'
 }
 
 def homePath = System.properties['user.home']
-def home = file('.')
 
 configurations {
     jar.archiveName = 'oscP5.jar'
@@ -44,39 +34,6 @@ task copyJar(type: Copy) {
     into file("$homePath/Documents/Processing/libraries/oscP5/library")
 }
 
-
-// plugins {
-//     id 'java'
-//     id 'maven-publish'
-// }
-
-// repositories {
-//     mavenLocal()
-//     maven {
-//         url = uri('https://oss.sonatype.org/content/repositories/snapshots')
-//     }
-
-//     maven {
-//         url = uri('http://repo.maven.apache.org/maven2')
-//     }
-// }
-
-// group = 'oscP5'
-// version = '2.0.4'
-// description = 'oscP5'
-// sourceCompatibility = '1.5'
-
-// configurations.all {
-// }
-
-// publishing {
-//     publications {
-//         maven(MavenPublication) {
-//             from(components.java)
-//         }
-//     }
-// }
-
-// tasks.withType(JavaCompile) {
-//     options.encoding = 'UTF-8'
-// }
+task makeJavaDoc(type: Javadoc) {
+    source = sourceSets.main.allJava
+}
