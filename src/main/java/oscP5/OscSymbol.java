@@ -1,22 +1,22 @@
 package oscP5;
 
+/**
+ * Represents an OSC Symbol type.
+ */
 public class OscSymbol {
 
     private final String symbol;
 
-    public OscSymbol(final String theSymbol)
-    {
+    public OscSymbol(final String theSymbol) {
         symbol = theSymbol;
     }
 
-    public String get()
-    {
+    public String getValue() {
         return symbol;
     }
 
     @Override
-    public boolean equals(Object obj)
-    {
+    public boolean equals(Object obj) {
         if (obj == null) {
             return false;
         }
@@ -28,9 +28,11 @@ public class OscSymbol {
     }
 
     @Override
-    public String toString()
-    {
-        return symbol;
+    public String toString() {
+        return "{class: OscSymbol" +
+                ", value: "+ symbol +
+                "}";
+
     }
 
 }
