@@ -1,7 +1,7 @@
 /**
  * A network library for processing which supports UDP, TCP and Multicast.
  * 
- * ##copyright##
+ * (c) 2016
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -18,9 +18,9 @@
  * Free Software Foundation, Inc., 59 Temple Place, Suite 330,
  * Boston, MA 02111-1307 USA
  * 
- * @author ##author##
- * @modified ##date##
- * @version ##version##
+ * @author Vojtech Leischner https://trackmeifyoucan.com
+ * @modified 11/19/2015
+ * @version 2.0.4
  */
 
 package netP5;
@@ -130,6 +130,7 @@ public final class UdpServer extends Observable implements Transmitter {
 				channel.configureBlocking( false );
 				InetSocketAddress isa = ( host == null ) ? new InetSocketAddress( port ) : new InetSocketAddress( host , port );
 				channel.socket( ).bind( isa );
+				channel.socket().setBroadcast(true);
 				channel.register( selector , SelectionKey.OP_READ , ByteBuffer.allocate( size ) );
 				LOGGER.info( "starting server, listening on port " + port + " (" + isa.getAddress( ).getHostAddress( ) + ":" + isa.getPort( ) + " " + isa.getAddress( ).getLocalHost( )+ ":" + isa.getPort( ) + ")" );
 				

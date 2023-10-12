@@ -61,6 +61,7 @@ void oscEvent( OscMessage m ) {
   print( "Received an osc message" );
   print( ", address pattern: " + m.getAddress( ) );
   print( ", typetag: " + m.getTypetag( ) );
+  print( ", from IP: " + m.getIP( ) );
   if(m.getAddress( ).equals("/change") && m.getTypetag().equals("fff")) {
     /* transfer receivd values to local variables */
     x0 = m.floatValue(0);
@@ -69,5 +70,3 @@ void oscEvent( OscMessage m ) {
   }
   println();
 }
-
-
