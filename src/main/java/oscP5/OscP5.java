@@ -1,7 +1,7 @@
 /**
  * An OSC (Open Sound Control) library for processing.
  * 
- * ##copyright##
+ * (c) 2016
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -18,9 +18,9 @@
  * Free Software Foundation, Inc., 59 Temple Place, Suite 330,
  * Boston, MA 02111-1307 USA
  * 
- * @author ##author##
- * @modified ##date##
- * @version ##version##
+ * @author Vojtech Leischner https://trackmeifyoucan.com
+ * @modified 11/19/2015
+ * @version 2.0.4
  */
 
 package oscP5;
@@ -146,8 +146,8 @@ public class OscP5 implements Observer {
 		registerDispose( parent );
 		_myOscProperties = theProperties;
 
-		_myEventMethod = checkEventMethod( parent , "oscEvent" , new Class< ? >[] { OscMessage.class } );
-		_myPacketMethod = checkEventMethod( parent , "oscEvent" , new Class< ? >[] { OscBundle.class } );
+		_myEventMethod = checkEventMethod2( parent , "oscEvent" , new Class< ? >[] { OscMessage.class } );
+		_myPacketMethod = checkEventMethod2( parent , "oscEvent" , new Class< ? >[] { OscBundle.class } );
 		isEventMethod = _myEventMethod != null;
 		isPacketMethod = _myPacketMethod != null;
 
@@ -262,7 +262,7 @@ public class OscP5 implements Observer {
 		}
 	}
 
-	private Method checkEventMethod( Object theObject , String theMethod , Class< ? >[] theClass ) {
+	private Method checkEventMethod2( Object theObject , String theMethod , Class< ? >[] theClass ) {
 		Method method = null;
 		try {
 			method = theObject.getClass( ).getDeclaredMethod( theMethod , theClass );
@@ -270,6 +270,41 @@ public class OscP5 implements Observer {
 		} catch ( SecurityException e1 ) {} catch ( NoSuchMethodException e1 ) {}
 
 		return method;
+	}
+
+	private boolean checkEventMethod( ) {
+		Class< ? > _myParentClass = parent.getClass( );
+		try {
+			Method[] myMethods = _myParentClass.getDeclaredMethods( );
+			for ( int i = 0 ; i < myMethods.length ; i++ ) {
+				if ( myMethods[ i ].getName( ).indexOf( _myOscProperties.eventMethod( ) ) != -1 ) {
+					Class< ? >[] myClasses = myMethods[ i ].getParameterTypes( );
+					if ( myClasses.length == 1 ) {
+						_myEventClass = myClasses[ 0 ];
+						break;
+					}
+				}
+			}
+		} catch ( Throwable e ) {}
+
+		String tMethod = _myOscProperties.eventMethod( );
+
+		if ( tMethod != null ) {
+			try {
+				Class< ? >[] tClass = { _myEventClass };
+				_myEventMethod = _myParentClass.getDeclaredMethod( tMethod , tClass );
+				_myEventMethod.setAccessible( true );
+				return true;
+
+			} catch ( SecurityException e1 ) {
+				LOGGER.warning( "### security issues in OscP5.checkEventMethod(). (this occures when running in applet mode)" );
+			} catch ( NoSuchMethodException e1 ) {}
+		}
+
+		if ( _myEventMethod != null ) {
+			return true;
+		}
+		return false;
 	}
 
 	public static void flush( final NetAddress theNetAddress , final byte[] theBytes ) {

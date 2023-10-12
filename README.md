@@ -3,8 +3,24 @@ oscp5
 
 An Open Sound Control (OSC) implementation for java and processing.org
 
+## Updates
+By https://github.com/trackme518 :
+
+* fixed bug on Linux with OSC broadcast (in UdpServer.java)
+* exposed sender ip address with new function .getIP() - returns IP as a String (ie "168.0.4.2")
 
 
+```
+public String getIP( ) {
+	return hostAddress;//Bytes.getAsString( hostAddress );
+}
+```
+In OscMessage.java
+
+```
+channel.socket().setBroadcast(true);
+```
+In UdpServer.java
 
 ## <a name="issues"></a>Digital Object Identifiers
 

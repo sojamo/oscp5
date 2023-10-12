@@ -34,9 +34,8 @@ void oscEvent( OscMessage m) {
     int     v6 = m.intValue( 6 );
     
     println( "Address\t" + m.getAddress() );
-    
+    println( "Ffrom IP: " + m.getIP( ) );
     println( "Typetag\t" + m.getTypetag() );
-    
     println( "Arguments\t" + v0 +" , "+ v1 +" , "+ v2  +" , "+ v3 +" , "+ v4 +" , "+ v5 +" , "+v6);
     
     for( Object o : m.getArguments() ) {
@@ -46,4 +45,3 @@ void oscEvent( OscMessage m) {
     
   }
 }
-
